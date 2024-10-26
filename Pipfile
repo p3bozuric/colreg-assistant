@@ -1,0 +1,25 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+langchain = "*"
+langchain-anthropic = "*"
+langchain-pinecone = "*"
+python-dotenv = "*"
+langchainhub = "*"
+black = "*"
+voyageai = "*"
+langchain-openai = "*"
+langchain-voyageai = "*"
+pypdf = "*"
+langchain-community = "*"
+pinecone-notebooks = "*"
+flask = "*"
+flask-cors = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.12"

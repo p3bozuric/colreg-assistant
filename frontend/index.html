@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>eCOLREG Assistant</title>
+    <!-- Config must be loaded first -->
+    <script src="config.js"></script>
+    <!-- Add marked library for Markdown parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+    <!-- Add highlight.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <!-- Load our custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="header">
+        <div class="logo">eCOLREG Assistant</div>
+    </div>
+    <h1 class="page-title">Learn COLREGs Faster and More Efficiently!</h1>
+    <div class="main-container">
+        <div id="chat-container"></div>
+        <div id="loading" class="loading">Getting answer from Claude...</div>
+        <div id="input-container">
+            <input type="text" id="user-input" placeholder="Ask me anything about COLREGs...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+    <!-- Load our custom JavaScript -->
+    <script src="js/script.js"></script>
+</body>
+</html>
