@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir pipenv
 
 # Copy Pipfile and Pipfile.lock
-COPY Pipfile Pipfile.lock ./
+COPY backend/Pipfile backend/Pipfile.lock ./
 
 # Install dependencies using pipenv
 # --system flag installs packages globally (not in virtualenv)
@@ -21,7 +21,7 @@ COPY Pipfile Pipfile.lock ./
 RUN pipenv install --system --deploy
 
 # Copy the rest of the application
-COPY . .
+COPY backend/ .
 
 # Expose the port the app runs on
 EXPOSE 5000
