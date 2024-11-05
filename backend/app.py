@@ -12,12 +12,18 @@ from flask_cors import CORS
 app = Flask(__name__)
 
 # CORS with specific origins
-CORS(app, origins=[
-    'https://ecolreg-assistant.netlify.app',
-    'http://ecolreg-assistant.netlify.app',
-    'http://localhost:5000',
-    'http://localhost'
-], supports_credentials=True)
+CORS(app, 
+     origins=['https://ecolreg-assistant.netlify.app'],
+     allow_headers=['Content-Type'],
+     methods=['POST', 'OPTIONS'],
+     supports_credentials=True)
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'https://ecolreg-assistant.netlify.app')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+    return response
 
 # Load environment variables
 load_dotenv()
