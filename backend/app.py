@@ -10,7 +10,13 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+
+# CORS with specific origins
+CORS(app, origins=[
+    'https://ecolreg-assistant.netlify.app',
+    'http://localhost:5000',
+    'http://localhost'
+])
 
 # Load environment variables
 load_dotenv()
