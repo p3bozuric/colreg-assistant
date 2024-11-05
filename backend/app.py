@@ -14,9 +14,10 @@ app = Flask(__name__)
 # CORS with specific origins
 CORS(app, origins=[
     'https://ecolreg-assistant.netlify.app',
+    'http://ecolreg-assistant.netlify.app',
     'http://localhost:5000',
     'http://localhost'
-])
+], supports_credentials=True)
 
 # Load environment variables
 load_dotenv()
