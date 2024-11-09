@@ -76,19 +76,22 @@ Maritime Instructor Response:"""
 custom_rag_prompt = PromptTemplate.from_template(template)
 
 def generate_response(question, question_history):
+    # Get relevant documents
+    context = format_docs(vectorstore.as_retriever().get_relevant_documents(question))
+    
     # Format previous questions
     formatted_history = "\n".join([f"- {q}" for q in question_history]) if question_history else "No previous questions"
     
     # Get response from LLM
     response = llm.invoke(
-        rag_chain = (
-            {"context": vectorstore.as_retriever() | format_docs, "question": RunnablePassthrough(), "question_history": formatted_history} | custom_rag_prompt | llm
+        custom_rag_prompt.format(
+            context=context,
+            question=question,
+            question_history=formatted_history
         )
     )
     
     return response.content
-# Create the RAG chain
-
 
 @app.route('/chat', methods=['POST'])
 def chat():
