@@ -76,7 +76,7 @@ Maritime Instructor Response:"""
 custom_rag_prompt = PromptTemplate.from_template(template)
 
 def generate_response(question, question_history):
-    
+
     # Get relevant documents
     retriever = vectorstore.as_retriever()
     context = format_docs(retriever.invoke(question))
@@ -93,8 +93,7 @@ def generate_response(question, question_history):
         )
     )
     
-    # Return the content property of the response
-    return response.content
+    return response
 
 @app.route('/chat', methods=['POST'])
 def chat():
