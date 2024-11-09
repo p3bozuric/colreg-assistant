@@ -76,8 +76,10 @@ Maritime Instructor Response:"""
 custom_rag_prompt = PromptTemplate.from_template(template)
 
 def generate_response(question, question_history):
+    
     # Get relevant documents
-    context = format_docs(vectorstore.as_retriever().get_relevant_documents(question))
+    retriever = vectorstore.as_retriever()
+    context = format_docs(retriever.invoke(question))
     
     # Format previous questions
     formatted_history = "\n".join([f"- {q}" for q in question_history]) if question_history else "No previous questions"
@@ -91,6 +93,7 @@ def generate_response(question, question_history):
         )
     )
     
+    # Return the content property of the response
     return response.content
 
 @app.route('/chat', methods=['POST'])
