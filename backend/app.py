@@ -5,7 +5,7 @@ from langchain_voyageai import VoyageAIEmbeddings
 from langchain_anthropic import ChatAnthropic
 from langchain_pinecone import PineconeVectorStore
 from langchain_core.runnables import RunnablePassthrough
-from pinecone import Pinecone
+from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -44,6 +44,9 @@ vectorstore = PineconeVectorStore(
     embedding=embeddings        
 )
 
+# Store user questions by session
+user_questions = {}
+
 # Define the prompt template
 template = """You are an experienced maritime navigation instructor specializing in COLREGs. Your role is to:
 
@@ -62,32 +65,58 @@ template = """You are an experienced maritime navigation instructor specializing
    - If relevant, mention any visual/sound signals required
    - Highlight any special considerations for safety
 
-Context: {context}
-Question: {question}
+Previous questions from this user:
+{question_history}
+
+Context from documents: {context}
+Current question: {question}
 
 Maritime Instructor Response:"""
 
 custom_rag_prompt = PromptTemplate.from_template(template)
 
+def generate_response(question, question_history):
+    # Format previous questions
+    formatted_history = "\n".join([f"- {q}" for q in question_history]) if question_history else "No previous questions"
+    
+    # Get response from LLM
+    response = llm.invoke(
+        rag_chain = (
+            {"context": vectorstore.as_retriever() | format_docs, "question": RunnablePassthrough(), "question_history": formatted_history} | custom_rag_prompt | llm
+        )
+    )
+    
+    return response.content
 # Create the RAG chain
-rag_chain = (
-    {"context": vectorstore.as_retriever() | format_docs, "question": RunnablePassthrough()}
-    | custom_rag_prompt
-    | llm
-)
+
 
 @app.route('/chat', methods=['POST'])
 def chat():
     try:
         data = request.json
         user_message = data.get('message', '')
+        session_id = data.get('session_id', datetime.now().strftime("%Y%m%d%H%M%S"))
         
-        # Get response from the chain
-        response = rag_chain.invoke(user_message)
+        # Initialize or get question history for this session
+        if session_id not in user_questions:
+            user_questions[session_id] = []
+
+        # Get response
+        response = generate_response(user_message, user_questions[session_id])
+
+        # Store the question
+        user_questions[session_id].append(user_message)
+        
+        # Keep only last 10 questions for context
+        user_questions[session_id] = user_questions[session_id][-10:]
+
+        if len(user_questions) > 1000:
+            oldest_session = min(user_questions.keys())
+            del user_questions[oldest_session]
         
         return jsonify({
             "answer": response.content,
-            "sources": []  # If you want to add sources, you'll need to modify the chain to return them
+            "sources": [] 
         })
         
     except Exception as e:
