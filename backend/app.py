@@ -2,7 +2,6 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 from flask import Flask, request, jsonify
-from flask_cors import CORS
 from langchain_anthropic import ChatAnthropic
 from langchain_voyageai import VoyageAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
