@@ -15,15 +15,15 @@ if __name__=="__main__":
 
     print("Splitting...")
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1400, chunk_overlap=200)
-    texts = text_splitter.split_documents(document)
-    print(f"Created {len(texts)} chunks.")
+    chunks = text_splitter.split_documents(document)
+    print(f"Created {len(chunks)} chunks.")
 
     print("Embedding and ingesting...")
 
     embeddings = VoyageAIEmbeddings(model="voyage-3", 
                                     voyage_api_key=os.environ.get("VOYAGE_API_KEY"))
         
-    PineconeVectorStore.from_documents(texts, 
+    PineconeVectorStore.from_documents(chunks,
                                        embeddings, 
                                        index_name=os.environ['INDEX_NAME'])
                                        
