@@ -59,7 +59,7 @@ conversation_chains = {}
 
 def get_or_create_chain(session_id):
     if session_id not in conversation_chains:
-        llm = ChatAnthropic(model="claude-3-sonnet-20240229")
+        llm = ChatAnthropic(model="claude-3-7-sonnet-20250219")
 
         memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
 
