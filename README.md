@@ -4,7 +4,7 @@ A RAG-powered application for learning COLREGs using LangChain, Pinecone, Voyage
 
 ## Setup Options
 
-### Local Setup (Without Docker)
+### Local Setup
 1. Install dependencies:
 ```bash
 pipenv install
@@ -20,18 +20,15 @@ PINECONE_API_KEY=your_key_here
 3. Run the backend:
 ```bash
 cd backend
+
+# Start the ingestion process
+python ingestion.py
+
+# Start the app
 python app.py
 ```
 
 4. Open frontend/index.html in your browser
-
-### Docker Setup
-1. Create .env file (same as above)
-2. Start the services:
-```bash
-docker-compose up --build
-```
-3. Access the application at http://localhost
 
 ## Architecture
 - Frontend: Static HTML/JS/CSS 
@@ -39,6 +36,3 @@ docker-compose up --build
 - Vector Store: Pinecone
 - Embeddings: VoyageAI
 - LLM: Anthropic Claude
-
-## Deployment
-Instructions for AWS EC2 and Netlify deployment coming soon.
