@@ -42,42 +42,19 @@ async def generate_streaming_response(
     Yields:
         Text chunks from the streaming response
     """
-    try:
-        logger.info(f"Generating response with {settings.model_name}")
+    logger.info(f"Generating response with {settings.model_name}")
 
-        system_instruction, contents = _convert_messages_to_contents(messages)
+    system_instruction, contents = _convert_messages_to_contents(messages)
 
-        config = types.GenerateContentConfig(
-            temperature=temperature,
-            system_instruction=system_instruction,
-        )
-
-        async for chunk in client.aio.models.generate_content_stream(
-            model=settings.model_name,
-            contents=contents,
-            config=config,
-        ):
-            if chunk.text:
-                yield chunk.text
-
-    except Exception as e:
-        logger.error(f"Error in LLM generation: {e}")
-        raise
-
-
-def generate_sync_response(prompt: str, model: str = "gemini-2.0-flash-lite") -> str:
-    """
-    Generate a synchronous response from Gemini.
-
-    Args:
-        prompt: The prompt to send
-        model: Model name to use
-
-    Returns:
-        The generated text response
-    """
-    response = client.models.generate_content(
-        model=model,
-        contents=prompt,
+    config = types.GenerateContentConfig(
+        temperature=temperature,
+        system_instruction=system_instruction,
     )
-    return response.text or ""
+
+    async for chunk in await client.aio.models.generate_content_stream(
+        model=settings.model_name,
+        contents=contents,
+        config=config,
+    ):
+        if chunk.text:
+            yield chunk.text

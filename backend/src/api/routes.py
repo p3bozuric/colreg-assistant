@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-from sse_starlette.sse import EventSourceResponse
 from datetime import datetime
 from loguru import logger
 from src.graph.workflow import create_graph
@@ -65,7 +65,7 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
             try:
                 async for chunk in generate_streaming_response(messages):
                     full_response += chunk
-                    yield {"data": chunk}
+                    yield f"data: {chunk}\n\n"
 
                 # Save conversation after streaming completes
                 save_message(session_id, "user", request.message)
@@ -75,9 +75,9 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
 
             except Exception as e:
                 logger.error(f"Error in streaming: {e}")
-                yield {"data": f"[ERROR]: {str(e)}"}
+                yield f"data: [ERROR]: {str(e)}\n\n"
 
-        return EventSourceResponse(event_generator())
+        return StreamingResponse(event_generator(), media_type="text/event-stream")
 
     except Exception as e:
         logger.error(f"Error in chat endpoint: {e}")
