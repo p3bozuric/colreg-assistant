@@ -20,6 +20,7 @@ var/
 .installed.cfg
 *.egg
 venv/
+.venv/
 
 # Environment variables
 .env

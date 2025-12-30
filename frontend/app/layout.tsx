@@ -1,0 +1,38 @@
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import Navigation from "@/components/Navigation";
+import ParticleBackground from "@/components/ui/ParticleBackground";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "COLREG Assistant",
+  description: "Maritime navigation chatbot specializing in COLREGs",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
+      >
+        <ParticleBackground />
+        <Navigation />
+        <main className="flex-1 flex flex-col">{children}</main>
+      </body>
+    </html>
+  );
+}
