@@ -1,9 +1,8 @@
 from loguru import logger
-from litellm import completion
 from src.graph.state import GraphState
 from src.services.retriever import retrieve_context, format_context
 from src.services.chat_history import load_session_history, save_message, format_history_for_llm
-from src.services.llm import generate_streaming_response
+from src.services.llm import generate_streaming_response, generate_sync_response
 
 
 FALLBACK_RESPONSE = """I'm sorry, but I can only help with questions related to maritime navigation and COLREGs (International Regulations for Preventing Collisions at Sea).
@@ -54,18 +53,9 @@ def preprocess_node(state: GraphState) -> GraphState:
     logger.info("Preprocessing query for validation...")
 
     try:
-        response = completion(
-            model="gemini/gemini-2.0-flash-lite",
-            messages=[
-                {
-                    "role": "user",
-                    "content": CLASSIFIER_PROMPT.format(query=state["query"]),
-                }
-            ],
-            max_tokens=10,
-        )
+        prompt = CLASSIFIER_PROMPT.format(query=state["query"])
+        result = generate_sync_response(prompt, model="gemini-2.0-flash-lite").strip().upper()
 
-        result = response.choices[0].message.content.strip().upper()
         is_valid = result == "VALID"
 
         logger.info(f"Query classification: {result}, is_valid: {is_valid}")

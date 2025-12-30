@@ -1,10 +1,31 @@
 from typing import AsyncGenerator
-from litellm import acompletion
+from google import genai
+from google.genai import types
 from loguru import logger
 from src.config import get_settings
 
 
 settings = get_settings()
+client = genai.Client(api_key=settings.google_api_key)
+
+
+def _convert_messages_to_contents(messages: list[dict]) -> tuple[str | None, list[types.Content]]:
+    """Convert OpenAI-style messages to Google GenAI format."""
+    system_instruction = None
+    contents = []
+
+    for msg in messages:
+        role = msg["role"]
+        content = msg["content"]
+
+        if role == "system":
+            system_instruction = content
+        elif role == "user":
+            contents.append(types.Content(role="user", parts=[types.Part(text=content)]))
+        elif role == "assistant":
+            contents.append(types.Content(role="model", parts=[types.Part(text=content)]))
+
+    return system_instruction, contents
 
 
 async def generate_streaming_response(
@@ -12,7 +33,7 @@ async def generate_streaming_response(
     temperature: float = 0.7,
 ) -> AsyncGenerator[str, None]:
     """
-    Generate streaming response from Gemini via LiteLLM.
+    Generate streaming response from Gemini via google-genai.
 
     Args:
         messages: List of message dicts with 'role' and 'content'
@@ -24,18 +45,39 @@ async def generate_streaming_response(
     try:
         logger.info(f"Generating response with {settings.model_name}")
 
-        response = await acompletion(
-            model=settings.model_name,
-            messages=messages,
+        system_instruction, contents = _convert_messages_to_contents(messages)
+
+        config = types.GenerateContentConfig(
             temperature=temperature,
-            stream=True,
-            api_key=settings.google_api_key,
+            system_instruction=system_instruction,
         )
 
-        async for chunk in response:
-            if chunk.choices[0].delta.content:
-                yield chunk.choices[0].delta.content
+        async for chunk in client.aio.models.generate_content_stream(
+            model=settings.model_name,
+            contents=contents,
+            config=config,
+        ):
+            if chunk.text:
+                yield chunk.text
 
     except Exception as e:
         logger.error(f"Error in LLM generation: {e}")
         raise
+
+
+def generate_sync_response(prompt: str, model: str = "gemini-2.0-flash-lite") -> str:
+    """
+    Generate a synchronous response from Gemini.
+
+    Args:
+        prompt: The prompt to send
+        model: Model name to use
+
+    Returns:
+        The generated text response
+    """
+    response = client.models.generate_content(
+        model=model,
+        contents=prompt,
+    )
+    return response.text or ""
