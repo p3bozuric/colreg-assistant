@@ -149,12 +149,15 @@ pydantic==2.12.5
     #   langgraph
     #   langsmith
     #   postgrest
+    #   pydantic-settings
     #   pyiceberg
     #   realtime
     #   storage3
     #   supabase-auth
 pydantic-core==2.41.5
     # via pydantic
+pydantic-settings==2.12.0
+    # via colreg-assistant (pyproject.toml)
 pygments==2.19.2
     # via rich
 pyiceberg==0.10.0
@@ -170,7 +173,9 @@ pyroaring==1.0.3
 python-dateutil==2.9.0.post0
     # via strictyaml
 python-dotenv==1.2.1
-    # via colreg-assistant (pyproject.toml)
+    # via
+    #   colreg-assistant (pyproject.toml)
+    #   pydantic-settings
 pyyaml==6.0.3
     # via langchain-core
 realtime==2.27.0
@@ -231,7 +236,9 @@ typing-extensions==4.15.0
     #   sqlalchemy
     #   typing-inspection
 typing-inspection==0.4.2
-    # via pydantic
+    # via
+    #   pydantic
+    #   pydantic-settings
 urllib3==2.6.2
     # via requests
 uuid-utils==0.12.0
