@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     # Supabase
     supabase_url: str
     supabase_key: str
+    database_url: str  # PostgreSQL connection string for pgvector
 
     # API Security
     api_key: str

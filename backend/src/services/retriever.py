@@ -5,7 +5,7 @@ from src.services.embeddings import embed_text
 
 
 settings = get_settings()
-vx = vecs.create_client(settings.supabase_url)
+vx = vecs.create_client(settings.database_url)
 
 
 def retrieve_context(query: str, top_k: int = 5) -> list[str]:

@@ -43,7 +43,7 @@ def ingest_pdf(pdf_path: str):
 
     # Store in Supabase pgvector via vecs
     logger.info("Storing in Supabase pgvector...")
-    vx = vecs.create_client(settings.supabase_url)
+    vx = vecs.create_client(settings.database_url)
 
     # Create or get collection
     try:
