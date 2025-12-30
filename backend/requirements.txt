@@ -176,6 +176,8 @@ python-dotenv==1.2.1
     # via
     #   colreg-assistant (pyproject.toml)
     #   pydantic-settings
+python-multipart==0.0.21
+    # via colreg-assistant (pyproject.toml)
 pyyaml==6.0.3
     # via langchain-core
 realtime==2.27.0
