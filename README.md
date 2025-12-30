@@ -107,21 +107,28 @@ NEXT_PUBLIC_PARENT_URL=https://bozuric.com
 
 ### Vercel (Backend)
 
-1. Set root directory to `backend`
-2. Add environment variables in Vercel dashboard
-3. Deploy:
-```bash
-cd backend
-vercel deploy
-```
+1. Create new project, set **Root Directory** to `backend`
+2. Framework Preset: **FastAPI**
+3. Build and Output Settings:
+   - Build Command: (leave off)
+   - Output Directory: (leave off)
+   - Install Command: (leave off - auto-detects `requirements.txt`)
+4. Add environment variables:
+   - `GOOGLE_API_KEY`
+   - `SUPABASE_URL`
+   - `SUPABASE_KEY`
+   - `API_KEY`
+5. Deploy
 
 ### Vercel (Frontend)
 
-1. Set root directory to `frontend`
-2. Add environment variables:
-   - `NEXT_PUBLIC_API_URL` = your backend URL
+1. Create new project, set **Root Directory** to `frontend`
+2. Framework Preset: **Next.js**
+3. Add environment variables:
+   - `NEXT_PUBLIC_API_URL` = your backend URL (e.g., `https://colreg-assistant.vercel.app`)
    - `NEXT_PUBLIC_API_KEY` = your API key
-3. Deploy via Vercel dashboard or CLI
+   - `NEXT_PUBLIC_PARENT_URL` = parent site URL
+4. Deploy
 
 ## Supabase Setup
 
