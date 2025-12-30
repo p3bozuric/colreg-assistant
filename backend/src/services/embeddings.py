@@ -1,10 +1,13 @@
 from google import genai
+from google.genai import types
 from loguru import logger
 from src.config import get_settings
 
 
 settings = get_settings()
 client = genai.Client(api_key=settings.google_api_key)
+
+EMBEDDING_DIMENSION = 768
 
 
 def embed_text(text: str) -> list[float]:
@@ -15,12 +18,13 @@ def embed_text(text: str) -> list[float]:
         text: Text to embed
 
     Returns:
-        Embedding vector as list of floats
+        Embedding vector as list of floats (768 dimensions)
     """
     try:
         result = client.models.embed_content(
             model=settings.embedding_model,
             contents=[text],
+            config=types.EmbedContentConfig(output_dimensionality=EMBEDDING_DIMENSION),
         )
         return result.embeddings[0].values
 
@@ -37,12 +41,13 @@ def embed_batch(texts: list[str]) -> list[list[float]]:
         texts: List of texts to embed
 
     Returns:
-        List of embedding vectors
+        List of embedding vectors (768 dimensions each)
     """
     try:
         result = client.models.embed_content(
             model=settings.embedding_model,
             contents=texts,
+            config=types.EmbedContentConfig(output_dimensionality=EMBEDDING_DIMENSION),
         )
         return [emb.values for emb in result.embeddings]
 

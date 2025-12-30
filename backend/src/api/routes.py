@@ -1,5 +1,3 @@
-import tempfile
-import os
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
@@ -107,37 +105,21 @@ async def ingest_document(
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
     try:
-        # Import here to keep docling optional for regular API runtime
-        from src.ingestion.ingest import ingest_pdf
+        from src.ingestion.ingest import ingest_pdf_bytes
 
-        # Save uploaded file to temp location
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-            content = await file.read()
-            tmp.write(content)
-            tmp_path = tmp.name
+        # Read file content
+        content = await file.read()
+        logger.info(f"Ingesting uploaded file: {file.filename} ({len(content)} bytes)")
 
-        logger.info(f"Ingesting uploaded file: {file.filename}")
+        # Run ingestion
+        result = ingest_pdf_bytes(content, file.filename)
 
-        try:
-            # Run ingestion
-            ingest_pdf(tmp_path)
+        return {
+            "status": "success",
+            "message": f"Successfully ingested {file.filename}",
+            **result,
+        }
 
-            return {
-                "status": "success",
-                "message": f"Successfully ingested {file.filename}",
-                "filename": file.filename,
-            }
-        finally:
-            # Clean up temp file
-            if os.path.exists(tmp_path):
-                os.unlink(tmp_path)
-
-    except ImportError as e:
-        logger.error(f"Ingestion dependencies not installed: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Ingestion dependencies not installed: {e}",
-        )
     except Exception as e:
         logger.error(f"Error during ingestion: {e}")
         raise HTTPException(status_code=500, detail=str(e))

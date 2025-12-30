@@ -47,12 +47,7 @@ cp .env.example .env
 uv sync
 ```
 
-4. Run ingestion (first time only):
-```bash
-uv run python -m src.ingestion.ingest
-```
-
-5. Start the API:
+4. Start the API:
 ```bash
 uv run python -m src.main
 ```
@@ -132,26 +127,87 @@ NEXT_PUBLIC_PARENT_URL=https://bozuric.com
 
 ## Supabase Setup
 
-1. Enable pgvector extension in Supabase dashboard
-2. Create chat_history table:
+Run the following SQL in Supabase SQL Editor:
+
 ```sql
-CREATE TABLE chat_history (
-  id SERIAL PRIMARY KEY,
+-- Enable pgvector extension
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Documents table for RAG (vector embeddings)
+CREATE TABLE IF NOT EXISTS documents (
+  id TEXT PRIMARY KEY,
+  text TEXT NOT NULL,
+  embedding vector(768) NOT NULL,
+  source TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Vector similarity search index
+CREATE INDEX IF NOT EXISTS documents_embedding_idx
+ON documents USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
+
+-- Chat history table
+CREATE TABLE IF NOT EXISTS chat_history (
+  id BIGSERIAL PRIMARY KEY,
   session_id TEXT NOT NULL,
   role TEXT NOT NULL,
   content TEXT NOT NULL,
-  timestamp TIMESTAMPTZ NOT NULL
+  timestamp TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_chat_history_session ON chat_history(session_id);
+CREATE INDEX IF NOT EXISTS chat_history_session_idx ON chat_history(session_id);
+
+-- Vector search function (used by retriever)
+CREATE OR REPLACE FUNCTION match_documents(
+  query_embedding vector(768),
+  match_count int,
+  collection_name text DEFAULT NULL
+)
+RETURNS TABLE (
+  id text,
+  text text,
+  similarity float
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    d.id,
+    d.text,
+    1 - (d.embedding <=> query_embedding) as similarity
+  FROM documents d
+  ORDER BY d.embedding <=> query_embedding
+  LIMIT match_count;
+END;
+$$;
 ```
 
-## Manual Ingestion via API
+## Data Storage
 
-Upload a PDF document to the vector database:
+| Data | Table | Description |
+|------|-------|-------------|
+| Document embeddings | `documents` | RAG context (768-dim vectors) |
+| Chat history | `chat_history` | Conversation persistence |
+
+## Document Ingestion
+
+Upload a PDF document to populate the vector database (required before chat will work):
 
 ```bash
-curl -X POST "https://your-api.vercel.app/ingest" \
+curl -X POST "https://your-api.vercel.app/api/ingest" \
   -H "Authorization: Bearer your_api_key" \
-  -F "file=@/path/to/document.pdf"
+  -F "file=@eCOLREGs.pdf"
+```
+
+Response:
+```json
+{
+  "status": "success",
+  "message": "Successfully ingested eCOLREGs.pdf",
+  "filename": "eCOLREGs.pdf",
+  "chunks": 142,
+  "characters": 98543
+}
 ```

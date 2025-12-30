@@ -1,16 +1,26 @@
-import vecs
 from loguru import logger
+from supabase import create_client
 from src.config import get_settings
 from src.services.embeddings import embed_text
 
 
 settings = get_settings()
-vx = vecs.create_client(settings.database_url)
+
+# Use Supabase client for vector search via RPC
+_supabase_client = None
+
+
+def _get_supabase_client():
+    """Lazy initialization of Supabase client."""
+    global _supabase_client
+    if _supabase_client is None:
+        _supabase_client = create_client(settings.supabase_url, settings.supabase_key)
+    return _supabase_client
 
 
 def retrieve_context(query: str, top_k: int = 5) -> list[str]:
     """
-    Retrieve relevant context from Supabase pgvector.
+    Retrieve relevant context from Supabase pgvector using RPC.
 
     Args:
         query: User query to search for
@@ -25,19 +35,20 @@ def retrieve_context(query: str, top_k: int = 5) -> list[str]:
         # Embed the query
         query_embedding = embed_text(query)
 
-        # Get collection
-        collection = vx.get_collection(name=settings.collection_name)
+        # Use Supabase RPC to search vectors
+        supabase = _get_supabase_client()
 
-        # Search for similar vectors
-        results = collection.query(
-            data=query_embedding,
-            limit=top_k,
-            include_value=False,
-            include_metadata=True,
-        )
+        response = supabase.rpc(
+            "match_documents",
+            {
+                "query_embedding": query_embedding,
+                "match_count": top_k,
+                "collection_name": settings.collection_name,
+            }
+        ).execute()
 
         # Extract text from results
-        contexts = [result[1]["text"] for result in results]
+        contexts = [row["text"] for row in response.data] if response.data else []
 
         logger.info(f"Retrieved {len(contexts)} context chunks")
         return contexts
