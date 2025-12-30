@@ -17,6 +17,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "COLREG Assistant",
   description: "Maritime navigation chatbot specializing in COLREGs",
+  keywords: ["COLREG", "Gemini", "GenAI", "LangGraph", "FastAPI", "Python", "Maritime AI", "Patrik Božurić"],
+  authors: [{ name: "Patrik Božurić" }],
+  creator: "Patrik Božurić",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({

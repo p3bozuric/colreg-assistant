@@ -58,7 +58,7 @@ def generate_sync_response(
 
 async def generate_streaming_response(
     messages: list[dict],
-    temperature: float = 0.7,
+    temperature: float = 0.6,
 ) -> AsyncGenerator[str, None]:
     """
     Generate streaming response from Gemini via google-genai.

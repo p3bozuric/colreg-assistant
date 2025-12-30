@@ -18,13 +18,14 @@ def _get_supabase_client():
     return _supabase_client
 
 
-def retrieve_context(query: str, top_k: int = 5) -> list[str]:
+def retrieve_context(query: str, top_k: int = 10, match_threshold: float = 0.3) -> list[str]:
     """
     Retrieve relevant context from Supabase pgvector using RPC.
 
     Args:
         query: User query to search for
         top_k: Number of top results to return
+        match_threshold: Minimum similarity score (0-1) for results
 
     Returns:
         List of relevant text chunks
@@ -43,6 +44,7 @@ def retrieve_context(query: str, top_k: int = 5) -> list[str]:
             {
                 "query_embedding": query_embedding,
                 "match_count": top_k,
+                "match_threshold": match_threshold,
                 "collection_name": settings.collection_name,
             }
         ).execute()

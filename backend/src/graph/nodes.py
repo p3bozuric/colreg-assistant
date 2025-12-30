@@ -45,7 +45,7 @@ SYSTEM_PROMPT = """You are an experienced maritime navigation instructor special
    - If relevant, mention any visual/sound signals required
    - Highlight any special considerations for safety
 
-Use the context provided to answer questions. If you don't know the answer, say so."""
+Use the context provided to answer questions. If you don't know the answer, say so. Answer in markdown."""
 
 
 def preprocess_node(state: GraphState) -> GraphState:
@@ -114,14 +114,14 @@ async def generate_node(state: GraphState) -> GraphState:
 
     # Build messages for LLM
     messages = [
-        {"role": "system", "content": f"{SYSTEM_PROMPT}\n\n{state['formatted_context']}"}
+        {"role": "system", "content": f"{SYSTEM_PROMPT}"}
     ]
 
     # Add chat history
     messages.extend(state["chat_history"])
 
     # Add current query
-    messages.append({"role": "user", "content": state["query"]})
+    messages.append({"role": "user", "content": f"{state['formatted_context']}\n\nUser Question:\n{state["query"]}"})
 
     # Generate response (collect full response for saving)
     full_response = ""

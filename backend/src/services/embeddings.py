@@ -7,7 +7,7 @@ from src.config import get_settings
 settings = get_settings()
 client = genai.Client(api_key=settings.google_api_key)
 
-EMBEDDING_DIMENSION = 768
+EMBEDDING_DIMENSION = 1536
 
 
 def embed_text(text: str) -> list[float]:
@@ -18,7 +18,7 @@ def embed_text(text: str) -> list[float]:
         text: Text to embed
 
     Returns:
-        Embedding vector as list of floats (768 dimensions)
+        Embedding vector as list of floats (1536 dimensions)
     """
     try:
         result = client.models.embed_content(
@@ -41,7 +41,7 @@ def embed_batch(texts: list[str]) -> list[list[float]]:
         texts: List of texts to embed
 
     Returns:
-        List of embedding vectors (768 dimensions each)
+        List of embedding vectors (1536 dimensions each)
     """
     try:
         result = client.models.embed_content(
