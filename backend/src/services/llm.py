@@ -28,6 +28,34 @@ def _convert_messages_to_contents(messages: list[dict]) -> tuple[str | None, lis
     return system_instruction, contents
 
 
+def generate_sync_response(
+    prompt: str,
+    model: str | None = None,
+    temperature: float = 0.7,
+) -> str:
+    """
+    Generate a synchronous response from Gemini.
+
+    Args:
+        prompt: The prompt string
+        model: Optional model name (defaults to settings.model_name)
+        temperature: Model temperature (0.0-1.0)
+
+    Returns:
+        The generated text response
+    """
+    model_name = model or settings.model_name
+    logger.info(f"Generating sync response with {model_name}")
+
+    response = client.models.generate_content(
+        model=model_name,
+        contents=prompt,
+        config=types.GenerateContentConfig(temperature=temperature),
+    )
+
+    return response.text or ""
+
+
 async def generate_streaming_response(
     messages: list[dict],
     temperature: float = 0.7,
