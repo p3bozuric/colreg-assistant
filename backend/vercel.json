@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "src/**/*.py": {
-      "excludeFiles": "{data,.venv,__pycache__,*.pyc}/**"
-    }
-  }
-}
