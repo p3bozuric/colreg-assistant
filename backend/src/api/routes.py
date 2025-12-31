@@ -53,10 +53,18 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
 
         # Build messages for LLM
         messages = [
-            {"role": "system", "content": f"{SYSTEM_PROMPT}\n\n{formatted_context}"}
+            {"role": "system", "content": SYSTEM_PROMPT}
         ]
         messages.extend(chat_history)
-        messages.append({"role": "user", "content": request.message})
+
+        # Include context with the user's question
+        user_content = f"""Reference material:
+---
+{formatted_context}
+---
+
+User question: {request.message}"""
+        messages.append({"role": "user", "content": user_content})
 
         # Streaming generator
         async def event_generator():

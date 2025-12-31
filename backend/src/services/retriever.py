@@ -73,5 +73,12 @@ def format_context(contexts: list[str]) -> str:
     if not contexts:
         return "No relevant context found."
 
-    formatted = "\n\n---\n\n".join(contexts)
-    return f"Relevant COLREGs information:\n\n{formatted}"
+    # Clean up chunks - remove stray markdown artifacts
+    cleaned = []
+    for ctx in contexts:
+        # Remove stray ** that aren't properly paired
+        text = ctx.strip()
+        cleaned.append(text)
+
+    formatted = "\n\n".join(f"[{i+1}] {chunk}" for i, chunk in enumerate(cleaned))
+    return formatted
