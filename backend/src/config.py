@@ -7,7 +7,7 @@ class Settings(BaseSettings):
 
     # Google AI
     google_api_key: str
-    model_name: str = "gemini-2.5-flash"
+    model_name: str = "gemini-3-flash-preview"
     embedding_model: str = "gemini-embedding-001"
 
     # Supabase
