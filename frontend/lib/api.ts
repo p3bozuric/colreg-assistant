@@ -27,18 +27,39 @@ export async function* streamChat(
   }
 
   const decoder = new TextDecoder();
+  let buffer = "";
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
 
-    const chunk = decoder.decode(value, { stream: true });
-    const lines = chunk.split("\n");
+    buffer += decoder.decode(value, { stream: true });
 
+    // Process complete SSE messages (each ends with \n\n)
+    const messages = buffer.split("\n\n");
+    // Keep the last potentially incomplete message in the buffer
+    buffer = messages.pop() || "";
+
+    for (const message of messages) {
+      const lines = message.split("\n");
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const data = line.slice(6);
+          if (data) {
+            yield data;
+          }
+        }
+      }
+    }
+  }
+
+  // Process any remaining data in the buffer
+  if (buffer) {
+    const lines = buffer.split("\n");
     for (const line of lines) {
       if (line.startsWith("data: ")) {
         const data = line.slice(6);
-        if (data.trim()) {
+        if (data) {
           yield data;
         }
       }

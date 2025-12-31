@@ -53,3 +53,15 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary-hover);
 }
+
+/* Ensure prose bold text is visible */
+.prose strong,
+.prose b {
+  font-weight: 700;
+  color: inherit;
+}
+
+.prose-invert strong,
+.prose-invert b {
+  color: #fff;
+}
