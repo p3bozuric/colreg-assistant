@@ -1,21 +1,18 @@
 [project]
 name = "colreg-assistant"
-version = "0.1.0"
-description = "COLREG Assistant - Maritime navigation chatbot with RAG"
+version = "0.2.0"
+description = "COLREG Assistant - Maritime navigation chatbot with rule-based extraction"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115.0",
     "langgraph>=0.2.59",
     "langchain-core>=0.3.29",
-    "langchain-text-splitters>=0.3.4",
     "supabase>=2.12.0",
-    "vecs>=0.4.3",
-    "google-genai>=0.2.2",
+    "litellm>=1.50.0",
+    "rapidfuzz>=3.0.0",
     "python-dotenv>=1.0.1",
     "loguru>=0.7.3",
-    "pymupdf>=1.25.0",
     "pydantic-settings>=2.0.0",
-    "python-multipart>=0.0.6",
 ]
 
 [project.optional-dependencies]

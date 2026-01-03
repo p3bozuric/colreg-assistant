@@ -5,24 +5,26 @@ from functools import lru_cache
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
-    # Google AI
-    google_api_key: str
-    model_name: str = "gemini-3-flash-preview"
-    embedding_model: str = "gemini-embedding-001"
+    # LiteLLM Model Configuration
+    # Supports: "gpt-4o", "gpt-4o-mini", "claude-3-5-sonnet-20241022", "gemini/gemini-2.0-flash", etc.
+    model_name: str = "gpt-4o-mini"
+    classifier_model: str = "gpt-4o-mini"  # Fast model for query classification
 
-    # Supabase
+    # API Keys - LiteLLM auto-detects based on model prefix
+    # Set the appropriate key for your chosen model
+    openai_api_key: str | None = None
+    anthropic_api_key: str | None = None
+    google_api_key: str | None = None
+
+    # Supabase (used for chat history)
     supabase_url: str
     supabase_key: str
-    database_url: str | None = None  # PostgreSQL connection string (only needed for local ingestion)
 
     # API Security
     api_key: str
 
     # Logging
     log_level: str = "INFO"
-
-    # Collection name for vector store
-    collection_name: str = "colregs_documents"
 
     model_config = SettingsConfigDict(
         env_file=".env",

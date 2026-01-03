@@ -1,45 +1,35 @@
+"""LLM Service using LiteLLM for model-agnostic inference.
+
+Supports OpenAI, Anthropic, Google, and other providers.
+"""
+
 from typing import AsyncGenerator
-from google import genai
-from google.genai import types
+import litellm
+from pydantic import BaseModel
 from loguru import logger
 from src.config import get_settings
 
-
 settings = get_settings()
-client = genai.Client(api_key=settings.google_api_key)
 
-
-def _convert_messages_to_contents(messages: list[dict]) -> tuple[str | None, list[types.Content]]:
-    """Convert OpenAI-style messages to Google GenAI format."""
-    system_instruction = None
-    contents = []
-
-    for msg in messages:
-        role = msg["role"]
-        content = msg["content"]
-
-        if role == "system":
-            system_instruction = content
-        elif role == "user":
-            contents.append(types.Content(role="user", parts=[types.Part(text=content)]))
-        elif role == "assistant":
-            contents.append(types.Content(role="model", parts=[types.Part(text=content)]))
-
-    return system_instruction, contents
+# Configure LiteLLM
+litellm.set_verbose = False
 
 
 def generate_sync_response(
     prompt: str,
     model: str | None = None,
     temperature: float = 0.7,
+    max_tokens: int = 2048,
 ) -> str:
     """
-    Generate a synchronous response from Gemini.
+    Generate a synchronous response using LiteLLM.
+    Supports OpenAI, Anthropic, Google, and other providers.
 
     Args:
         prompt: The prompt string
         model: Optional model name (defaults to settings.model_name)
         temperature: Model temperature (0.0-1.0)
+        max_tokens: Maximum tokens to generate
 
     Returns:
         The generated text response
@@ -47,42 +37,91 @@ def generate_sync_response(
     model_name = model or settings.model_name
     logger.info(f"Generating sync response with {model_name}")
 
-    response = client.models.generate_content(
+    response = litellm.completion(
         model=model_name,
-        contents=prompt,
-        config=types.GenerateContentConfig(temperature=temperature),
+        messages=[{"role": "user", "content": prompt}],
+        temperature=temperature,
+        max_tokens=max_tokens,
     )
 
-    return response.text or ""
+    return response.choices[0].message.content or ""
+
+
+def generate_structured_response(
+    prompt: str,
+    response_schema: type[BaseModel],
+    model: str | None = None,
+    max_retries: int = 3,
+    temperature: float = 0.3,
+) -> BaseModel | None:
+    """
+    Generate structured response using Pydantic schema.
+    Retries up to max_retries times on failure.
+
+    Args:
+        prompt: The prompt string
+        response_schema: Pydantic model class for response validation
+        model: Optional model name (defaults to settings.model_name)
+        max_retries: Number of retry attempts on failure
+        temperature: Model temperature (lower for more deterministic output)
+
+    Returns:
+        Validated Pydantic model instance, or None if all retries failed
+    """
+    model_name = model or settings.model_name
+    logger.info(f"Generating structured response with {model_name}")
+
+    for attempt in range(max_retries):
+        try:
+            response = litellm.completion(
+                model=model_name,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=temperature,
+                response_format={
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": response_schema.__name__,
+                        "schema": response_schema.model_json_schema(),
+                        "strict": True,
+                    }
+                },
+            )
+            json_str = response.choices[0].message.content
+            return response_schema.model_validate_json(json_str)
+        except Exception as e:
+            logger.warning(f"Structured output attempt {attempt + 1}/{max_retries} failed: {e}")
+
+    logger.error(f"All {max_retries} structured output attempts failed")
+    return None
 
 
 async def generate_streaming_response(
     messages: list[dict],
+    model: str | None = None,
     temperature: float = 0.6,
 ) -> AsyncGenerator[str, None]:
     """
-    Generate streaming response from Gemini via google-genai.
+    Generate streaming response using LiteLLM.
+    Supports OpenAI, Anthropic, Google, and other providers.
 
     Args:
         messages: List of message dicts with 'role' and 'content'
+        model: Optional model name (defaults to settings.model_name)
         temperature: Model temperature (0.0-1.0)
 
     Yields:
         Text chunks from the streaming response
     """
-    logger.info(f"Generating response with {settings.model_name}")
+    model_name = model or settings.model_name
+    logger.info(f"Generating streaming response with {model_name}")
 
-    system_instruction, contents = _convert_messages_to_contents(messages)
-
-    config = types.GenerateContentConfig(
+    response = await litellm.acompletion(
+        model=model_name,
+        messages=messages,
         temperature=temperature,
-        system_instruction=system_instruction,
+        stream=True,
     )
 
-    async for chunk in await client.aio.models.generate_content_stream(
-        model=settings.model_name,
-        contents=contents,
-        config=config,
-    ):
-        if chunk.text:
-            yield chunk.text
+    async for chunk in response:
+        if chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content

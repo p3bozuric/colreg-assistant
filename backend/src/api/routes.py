@@ -1,14 +1,11 @@
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+import json
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from datetime import datetime
 from loguru import logger
 from src.graph.workflow import create_graph
-from src.services.llm import generate_streaming_response
-from src.services.retriever import retrieve_context, format_context
-from src.services.chat_history import load_session_history, save_message, format_history_for_llm
-from src.graph.nodes import SYSTEM_PROMPT
 from src.config import get_settings
 
 
@@ -36,6 +33,7 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
     Chat endpoint with SSE streaming.
 
     Accepts a user message and optional session_id, returns a streaming response.
+    Uses the rule-based COLREG workflow graph.
     """
     try:
         # Generate session ID if not provided
@@ -43,41 +41,28 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
 
         logger.info(f"Chat request for session {session_id}: {request.message[:50]}...")
 
-        # Load chat history
-        messages_history = load_session_history(session_id)
-        chat_history = format_history_for_llm(messages_history)
+        # Run the graph workflow
+        result = await graph.ainvoke({
+            "query": request.message,
+            "session_id": session_id,
+        })
 
-        # Retrieve context
-        contexts = retrieve_context(request.message, top_k=5)
-        formatted_context = format_context(contexts)
+        response_text = result.get("response", "")
+        matched_rules = result.get("matched_rules", [])
 
-        # Build messages for LLM
-        messages = [
-            {"role": "system", "content": SYSTEM_PROMPT}
-        ]
-        messages.extend(chat_history)
-
-        # Include context with the user's question
-        user_content = f"""Reference material:
----
-{formatted_context}
----
-
-User question: {request.message}"""
-        messages.append({"role": "user", "content": user_content})
-
-        # Streaming generator
+        # Stream the response via SSE
         async def event_generator():
-            full_response = ""
-
             try:
-                async for chunk in generate_streaming_response(messages):
-                    full_response += chunk
+                # Stream response in chunks for better UX
+                chunk_size = 20
+                for i in range(0, len(response_text), chunk_size):
+                    chunk = response_text[i:i + chunk_size]
                     yield f"data: {chunk}\n\n"
 
-                # Save conversation after streaming completes
-                save_message(session_id, "user", request.message)
-                save_message(session_id, "assistant", full_response)
+                # Send matched rules as metadata event
+                if matched_rules:
+                    rules_data = [rule.model_dump() for rule in matched_rules]
+                    yield f"event: metadata\ndata: {json.dumps({'matched_rules': rules_data})}\n\n"
 
                 logger.info(f"Chat completed for session {session_id}")
 
@@ -92,42 +77,13 @@ User question: {request.message}"""
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/")
+async def root():
+    """Root endpoint."""
+    return {"detail": "COLREG Assistant"}
+
+
 @router.get("/health")
 async def health():
     """Health check endpoint."""
     return {"status": "healthy"}
-
-
-@router.post("/ingest")
-async def ingest_document(
-    file: UploadFile = File(...),
-    _: HTTPAuthorizationCredentials = Depends(verify_api_key),
-):
-    """
-    Ingest a PDF document into the vector database.
-
-    Accepts a PDF file upload, processes it, and stores embeddings in pgvector.
-    Protected endpoint - requires API key.
-    """
-    if not file.filename or not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files are supported")
-
-    try:
-        from src.ingestion.ingest import ingest_pdf_bytes
-
-        # Read file content
-        content = await file.read()
-        logger.info(f"Ingesting uploaded file: {file.filename} ({len(content)} bytes)")
-
-        # Run ingestion
-        result = ingest_pdf_bytes(content, file.filename)
-
-        return {
-            "status": "success",
-            "message": f"Successfully ingested {file.filename}",
-            **result,
-        }
-
-    except Exception as e:
-        logger.error(f"Error during ingestion: {e}")
-        raise HTTPException(status_code=500, detail=str(e))

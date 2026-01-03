@@ -42,7 +42,11 @@ export default function Chat() {
             const updated = [...prev];
             const lastMessage = updated[updated.length - 1];
             if (lastMessage.role === "assistant") {
-              lastMessage.content += chunk;
+              if (chunk.type === "text") {
+                lastMessage.content += chunk.data;
+              } else if (chunk.type === "metadata") {
+                lastMessage.matchedRules = chunk.matchedRules;
+              }
             }
             return updated;
           });

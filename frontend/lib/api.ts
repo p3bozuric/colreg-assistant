@@ -1,10 +1,16 @@
+import { MatchedRule } from "@/types";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
+
+export type StreamChunk =
+  | { type: "text"; data: string }
+  | { type: "metadata"; matchedRules: MatchedRule[] };
 
 export async function* streamChat(
   message: string,
   sessionId?: string
-): AsyncGenerator<string, void, unknown> {
+): AsyncGenerator<StreamChunk, void, unknown> {
   const response = await fetch(`${API_URL}/chat`, {
     method: "POST",
     headers: {
@@ -29,6 +35,35 @@ export async function* streamChat(
   const decoder = new TextDecoder();
   let buffer = "";
 
+  const processSSEMessage = (sseMessage: string): StreamChunk | null => {
+    const lines = sseMessage.split("\n");
+    let eventType = "message";
+    let data = "";
+
+    for (const line of lines) {
+      if (line.startsWith("event: ")) {
+        eventType = line.slice(7).trim();
+      } else if (line.startsWith("data: ")) {
+        data = line.slice(6);
+      }
+    }
+
+    if (!data) return null;
+
+    if (eventType === "metadata") {
+      try {
+        const parsed = JSON.parse(data);
+        if (parsed.matched_rules) {
+          return { type: "metadata", matchedRules: parsed.matched_rules };
+        }
+      } catch {
+        // If parsing fails, treat as text
+      }
+    }
+
+    return { type: "text", data };
+  };
+
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -40,29 +75,19 @@ export async function* streamChat(
     // Keep the last potentially incomplete message in the buffer
     buffer = messages.pop() || "";
 
-    for (const message of messages) {
-      const lines = message.split("\n");
-      for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          const data = line.slice(6);
-          if (data) {
-            yield data;
-          }
-        }
+    for (const msg of messages) {
+      const chunk = processSSEMessage(msg);
+      if (chunk) {
+        yield chunk;
       }
     }
   }
 
   // Process any remaining data in the buffer
   if (buffer) {
-    const lines = buffer.split("\n");
-    for (const line of lines) {
-      if (line.startsWith("data: ")) {
-        const data = line.slice(6);
-        if (data) {
-          yield data;
-        }
-      }
+    const chunk = processSSEMessage(buffer);
+    if (chunk) {
+      yield chunk;
     }
   }
 }
