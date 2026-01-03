@@ -53,8 +53,8 @@ export default function MessageList({
   return (
     <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4">
       {messages.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-full text-center">
-          <div className="text-6xl mb-4">⚓</div>
+        <div className="flex flex-col items-center justify-center h-full text-center pt-[15vh] md:pt-0">
+          <div className="text-5xl md:text-6xl mb-4">⚓</div>
           <h2 className="text-xl md:text-2xl font-semibold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-2">
             COLREG Assistant
           </h2>

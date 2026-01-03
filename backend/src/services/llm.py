@@ -99,6 +99,7 @@ async def generate_streaming_response(
     messages: list[dict],
     model: str | None = None,
     temperature: float = 0.6,
+    max_tokens: int = 800,
 ) -> AsyncGenerator[str, None]:
     """
     Generate streaming response using LiteLLM.
@@ -108,6 +109,7 @@ async def generate_streaming_response(
         messages: List of message dicts with 'role' and 'content'
         model: Optional model name (defaults to settings.model_name)
         temperature: Model temperature (0.0-1.0)
+        max_tokens: Maximum tokens to generate (default 800 for concise responses)
 
     Yields:
         Text chunks from the streaming response
@@ -120,6 +122,7 @@ async def generate_streaming_response(
         model=model_name,
         messages=messages,
         temperature=temperature,
+        max_tokens=max_tokens,
         stream=True,
     )
 

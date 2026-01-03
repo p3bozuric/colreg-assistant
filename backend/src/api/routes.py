@@ -5,12 +5,15 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from datetime import datetime
 from loguru import logger
-from src.graph.workflow import create_graph
+from src.graph.workflow import create_prep_graph
+from src.graph.nodes import SYSTEM_PROMPT, generate_suggestions_node
+from src.services.llm import generate_streaming_response
+from src.services.chat_history import save_message
 from src.config import get_settings
 
 
 router = APIRouter()
-graph = create_graph()
+prep_graph = create_prep_graph()
 security = HTTPBearer()
 
 
@@ -30,10 +33,10 @@ class ChatRequest(BaseModel):
 @router.post("/chat")
 async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(verify_api_key)):
     """
-    Chat endpoint with SSE streaming.
+    Chat endpoint with true SSE streaming.
 
     Accepts a user message and optional session_id, returns a streaming response.
-    Uses the rule-based COLREG workflow graph.
+    Uses prep graph for context, then streams LLM response directly.
     """
     try:
         # Generate session ID if not provided
@@ -41,27 +44,52 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
 
         logger.info(f"Chat request for session {session_id}: {request.message[:50]}...")
 
-        # Run the graph workflow
-        result = await graph.ainvoke({
+        # Run preparation graph (preprocess, load_history, extract_rules, compile_context)
+        prep_result = await prep_graph.ainvoke({
             "query": request.message,
             "session_id": session_id,
         })
 
-        response_text = result.get("response", "")
-        matched_rules = result.get("matched_rules", [])
-        suggested_questions = result.get("suggested_questions", [])
+        matched_rules = prep_result.get("matched_rules", [])
 
-        # Stream the response via SSE
+        # Check if query was invalid (fallback response set)
+        if prep_result.get("response"):
+            # Invalid query - return fallback without streaming
+            fallback_text = prep_result["response"]
+
+            async def fallback_generator():
+                yield f"data: {json.dumps({'text': fallback_text})}\n\n"
+
+            return StreamingResponse(fallback_generator(), media_type="text/event-stream")
+
+        # Build messages for LLM
+        system_content = SYSTEM_PROMPT.format(rule_context=prep_result.get("rule_context", ""))
+        messages = [{"role": "system", "content": system_content}]
+        messages.extend(prep_result.get("chat_history", []))
+        messages.append({"role": "user", "content": request.message})
+
+        # Stream response with true LLM streaming
         async def event_generator():
+            full_response = ""
             try:
-                # Stream response in chunks for better UX
-                # JSON encode each chunk to properly escape newlines and special characters
-                chunk_size = 20
-                for i in range(0, len(response_text), chunk_size):
-                    chunk = response_text[i:i + chunk_size]
+                # Stream LLM response directly
+                async for chunk in generate_streaming_response(messages):
+                    full_response += chunk
                     yield f"data: {json.dumps({'text': chunk})}\n\n"
 
-                # Send metadata event with rules and suggestions
+                # After streaming, generate suggestions
+                suggestion_result = generate_suggestions_node({
+                    **prep_result,
+                    "query": request.message,
+                    "response": full_response,
+                })
+                suggested_questions = suggestion_result.get("suggested_questions", [])
+
+                # Save to history
+                save_message(session_id, "user", request.message)
+                save_message(session_id, "assistant", full_response)
+
+                # Send metadata
                 metadata = {}
                 if matched_rules:
                     metadata["matched_rules"] = [rule.model_dump() for rule in matched_rules]

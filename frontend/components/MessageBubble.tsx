@@ -139,17 +139,22 @@ export default function MessageBubble({ message, isLoading, onSuggestionClick }:
         </span>
       </div>
       {hasSuggestions && (
-        <div className="mt-2 ml-2 flex flex-wrap gap-2">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="flex flex-col gap-1.5 mt-3"
+        >
           {message.suggestedQuestions!.map((question, idx) => (
             <button
               key={idx}
               onClick={() => onSuggestionClick!(question)}
-              className="px-3 py-1.5 text-xs rounded-full bg-card-bg border border-border hover:border-primary/50 hover:bg-primary/10 text-foreground/70 hover:text-foreground transition-colors"
+              className="self-start px-2.5 py-1 text-[11px] rounded-lg border border-dashed border-border/50 hover:border-primary/40 bg-transparent text-muted hover:text-foreground/70 transition-colors text-left opacity-60 hover:opacity-100"
             >
               {question}
             </button>
           ))}
-        </div>
+        </motion.div>
       )}
     </motion.div>
   );
