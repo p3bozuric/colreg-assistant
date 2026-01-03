@@ -24,5 +24,6 @@ class GraphState(TypedDict):
 
     # Output
     response: str
+    suggested_questions: list[str]  # Follow-up questions for user
 
 

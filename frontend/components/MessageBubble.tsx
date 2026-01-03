@@ -8,6 +8,8 @@ import { Message, MatchedRule } from "@/types";
 
 interface MessageBubbleProps {
   message: Message;
+  isLoading?: boolean;
+  onSuggestionClick?: (question: string) => void;
 }
 
 interface RuleButtonProps {
@@ -64,10 +66,29 @@ function RuleButton({ rule }: RuleButtonProps) {
   );
 }
 
-export default function MessageBubble({ message }: MessageBubbleProps) {
+function LoadingDots() {
+  return (
+    <div className="flex gap-1 py-1">
+      <span className="w-2 h-2 bg-primary rounded-full animate-bounce" />
+      <span
+        className="w-2 h-2 bg-primary rounded-full animate-bounce"
+        style={{ animationDelay: "0.1s" }}
+      />
+      <span
+        className="w-2 h-2 bg-primary rounded-full animate-bounce"
+        style={{ animationDelay: "0.2s" }}
+      />
+    </div>
+  );
+}
+
+export default function MessageBubble({ message, isLoading, onSuggestionClick }: MessageBubbleProps) {
   const isUser = message.role === "user";
   const hasMatchedRules =
     !isUser && message.matchedRules && message.matchedRules.length > 0;
+  const hasSuggestions =
+    !isUser && onSuggestionClick && message.suggestedQuestions && message.suggestedQuestions.length > 0;
+  const showLoading = isLoading && !message.content;
 
   return (
     <motion.div
@@ -87,6 +108,8 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           <p className="whitespace-pre-wrap text-sm md:text-base leading-relaxed">
             {message.content}
           </p>
+        ) : showLoading ? (
+          <LoadingDots />
         ) : (
           <div className="prose prose-invert prose-sm md:prose-base max-w-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 prose-code:bg-white/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-pre:bg-white/10 prose-pre:border prose-pre:border-white/20">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -115,6 +138,19 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           })}
         </span>
       </div>
+      {hasSuggestions && (
+        <div className="mt-2 ml-2 flex flex-wrap gap-2">
+          {message.suggestedQuestions!.map((question, idx) => (
+            <button
+              key={idx}
+              onClick={() => onSuggestionClick!(question)}
+              className="px-3 py-1.5 text-xs rounded-full bg-card-bg border border-border hover:border-primary/50 hover:bg-primary/10 text-foreground/70 hover:text-foreground transition-colors"
+            >
+              {question}
+            </button>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 }

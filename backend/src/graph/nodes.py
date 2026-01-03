@@ -5,7 +5,7 @@ from src.graph.state import GraphState
 from src.services.chat_history import load_session_history, save_message, format_history_for_llm
 from src.services.llm import generate_streaming_response, generate_sync_response, generate_structured_response
 from src.services.rule_matcher import keyword_fallback_extraction
-from src.models.extraction import RuleExtraction, RuleMetadata
+from src.models.extraction import RuleExtraction, RuleMetadata, SuggestedQuestions
 from src.data.rules import COLREG_RULES, GENERAL_INFO
 
 
@@ -113,6 +113,18 @@ Guidelines:
 
 RELEVANT COLREG RULES:
 {rule_context}"""
+
+
+SUGGESTIONS_PROMPT = """Based on this COLREG conversation, suggest 2-3 natural follow-up questions the user might ask next.
+
+User asked: {query}
+Assistant answered about: {rules_summary}
+
+Requirements:
+- Each question must be under 10 words
+- Questions should be practical and related to COLREGs
+- Don't repeat what was already asked
+- Focus on related rules, scenarios, or clarifications"""
 
 
 def preprocess_node(state: GraphState) -> dict:
@@ -260,6 +272,39 @@ async def generate_node(state: GraphState) -> dict:
 
     logger.info(f"Response generated ({len(full_response)} chars)")
     return {"response": full_response}
+
+
+def generate_suggestions_node(state: GraphState) -> dict:
+    """Generate follow-up question suggestions."""
+    logger.info("Generating follow-up suggestions...")
+
+    try:
+        # Build rules summary from matched rules
+        matched_rules = state.get("matched_rules", [])
+        rules_summary = ", ".join([r.title for r in matched_rules[:3]]) if matched_rules else "general COLREGs"
+
+        prompt = SUGGESTIONS_PROMPT.format(
+            query=state["query"],
+            rules_summary=rules_summary
+        )
+
+        result = generate_structured_response(
+            prompt,
+            SuggestedQuestions,
+            max_retries=2,
+            temperature=0.7
+        )
+
+        if result:
+            # Filter to ensure questions are short (max 10 words)
+            questions = [q for q in result.questions if len(q.split()) <= 10][:3]
+            logger.info(f"Generated {len(questions)} suggestions")
+            return {"suggested_questions": questions}
+
+    except Exception as e:
+        logger.warning(f"Failed to generate suggestions: {e}")
+
+    return {"suggested_questions": []}
 
 
 def save_history_node(state: GraphState) -> dict:

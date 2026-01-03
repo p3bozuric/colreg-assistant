@@ -1,19 +1,50 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { Message } from "@/types";
 import MessageBubble from "./MessageBubble";
+
+const STARTER_QUESTIONS = [
+  "What is Rule 14 (Head-on situations)?",
+  "Explain give-way vs stand-on vessels",
+  "What lights must a power-driven vessel show?",
+  "How do I navigate in restricted visibility?",
+  "What is the hierarchy of vessels under Rule 18?",
+  "When should I use sound signals?",
+  "What does 'not under command' mean?",
+  "Explain crossing situations (Rule 15)",
+  "What are the rules for overtaking?",
+  "How do I determine risk of collision?",
+  "What lights indicate a vessel at anchor?",
+  "Explain traffic separation schemes",
+  "What is safe speed under Rule 6?",
+  "When can I depart from the rules?",
+  "What signals indicate a vessel in distress?",
+  "Explain narrow channel navigation",
+  "What lights show a fishing vessel?",
+  "How should I act as the stand-on vessel?",
+  "What is restricted ability to manoeuvre?",
+  "Explain the lookout requirement (Rule 5)",
+];
+
+function getRandomQuestions(count: number): string[] {
+  const shuffled = [...STARTER_QUESTIONS].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
 
 interface MessageListProps {
   messages: Message[];
   isStreaming: boolean;
+  onSend?: (content: string) => void;
 }
 
 export default function MessageList({
   messages,
   isStreaming,
+  onSend,
 }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const starterQuestions = useMemo(() => getRandomQuestions(3), []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -27,35 +58,38 @@ export default function MessageList({
           <h2 className="text-xl md:text-2xl font-semibold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-2">
             COLREG Assistant
           </h2>
-          <p className="text-muted max-w-md">
+          <p className="text-muted max-w-md mb-6">
             Ask me anything about the International Regulations for Preventing
             Collisions at Sea. I can help with rules, scenarios, and best
             practices.
           </p>
-        </div>
-      ) : (
-        <>
-          {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
-          ))}
-          {isStreaming && (
-            <div className="flex justify-start">
-              <div className="backdrop-blur-sm bg-card-bg border border-border rounded-2xl rounded-bl-md px-4 py-3">
-                <div className="flex gap-1">
-                  <span className="w-2 h-2 bg-primary rounded-full animate-bounce" />
-                  <span
-                    className="w-2 h-2 bg-primary rounded-full animate-bounce"
-                    style={{ animationDelay: "0.1s" }}
-                  />
-                  <span
-                    className="w-2 h-2 bg-primary rounded-full animate-bounce"
-                    style={{ animationDelay: "0.2s" }}
-                  />
-                </div>
-              </div>
+          {onSend && (
+            <div className="flex flex-wrap justify-center gap-2 max-w-lg">
+              {starterQuestions.map((question, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => onSend(question)}
+                  className="px-3 py-2 text-sm rounded-lg bg-card-bg border border-border hover:border-primary/50 hover:bg-primary/10 text-foreground/80 hover:text-foreground transition-colors text-left"
+                >
+                  {question}
+                </button>
+              ))}
             </div>
           )}
-        </>
+        </div>
+      ) : (
+        messages.map((message, index) => {
+          const isLastAssistant =
+            message.role === "assistant" && index === messages.length - 1;
+          return (
+            <MessageBubble
+              key={message.id}
+              message={message}
+              isLoading={isStreaming && index === messages.length - 1}
+              onSuggestionClick={isLastAssistant && !isStreaming ? onSend : undefined}
+            />
+          );
+        })
       )}
       <div ref={bottomRef} />
     </div>

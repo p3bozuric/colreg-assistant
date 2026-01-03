@@ -5,7 +5,7 @@ const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
 
 export type StreamChunk =
   | { type: "text"; data: string }
-  | { type: "metadata"; matchedRules: MatchedRule[] };
+  | { type: "metadata"; matchedRules?: MatchedRule[]; suggestedQuestions?: string[] };
 
 export async function* streamChat(
   message: string,
@@ -53,8 +53,12 @@ export async function* streamChat(
     try {
       const parsed = JSON.parse(data);
 
-      if (eventType === "metadata" && parsed.matched_rules) {
-        return { type: "metadata", matchedRules: parsed.matched_rules };
+      if (eventType === "metadata") {
+        return {
+          type: "metadata",
+          matchedRules: parsed.matched_rules,
+          suggestedQuestions: parsed.suggested_questions,
+        };
       }
 
       if (parsed.text !== undefined) {

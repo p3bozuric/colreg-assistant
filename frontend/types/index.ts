@@ -14,6 +14,7 @@ export interface Message {
   content: string;
   timestamp: Date;
   matchedRules?: MatchedRule[];
+  suggestedQuestions?: string[];
 }
 
 export interface ChatRequest {

@@ -35,3 +35,14 @@ class RuleMetadata(BaseModel):
     summary: str
     content: str
     keywords: list[str]
+
+
+class SuggestedQuestions(BaseModel):
+    """Suggested follow-up questions for the user."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    questions: list[str] = Field(
+        description="List of 2-3 brief follow-up questions (max 10 words each)",
+        max_length=3
+    )

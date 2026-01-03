@@ -9,6 +9,7 @@ from src.graph.nodes import (
     extract_rules_node,
     compile_context_node,
     generate_node,
+    generate_suggestions_node,
     save_history_node,
 )
 
@@ -24,7 +25,7 @@ def create_graph():
     """Create and compile the rule-based COLREG workflow graph.
 
     Flow:
-        START -> preprocess -> (valid) -> load_history -> extract_rules -> compile_context -> generate -> save_history -> END
+        START -> preprocess -> (valid) -> load_history -> extract_rules -> compile_context -> generate -> suggestions -> save_history -> END
                            -> (invalid) -> fallback -> END
     """
 
@@ -38,6 +39,7 @@ def create_graph():
     graph.add_node("extract_rules", extract_rules_node)
     graph.add_node("compile_context", compile_context_node)
     graph.add_node("generate", generate_node)
+    graph.add_node("suggestions", generate_suggestions_node)
     graph.add_node("save_history", save_history_node)
 
     # Define edges
@@ -47,7 +49,8 @@ def create_graph():
     graph.add_edge("load_history", "extract_rules")
     graph.add_edge("extract_rules", "compile_context")
     graph.add_edge("compile_context", "generate")
-    graph.add_edge("generate", "save_history")
+    graph.add_edge("generate", "suggestions")
+    graph.add_edge("suggestions", "save_history")
     graph.add_edge("save_history", END)
 
     # Compile

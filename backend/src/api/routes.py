@@ -49,6 +49,7 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
 
         response_text = result.get("response", "")
         matched_rules = result.get("matched_rules", [])
+        suggested_questions = result.get("suggested_questions", [])
 
         # Stream the response via SSE
         async def event_generator():
@@ -60,10 +61,14 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
                     chunk = response_text[i:i + chunk_size]
                     yield f"data: {json.dumps({'text': chunk})}\n\n"
 
-                # Send matched rules as metadata event
+                # Send metadata event with rules and suggestions
+                metadata = {}
                 if matched_rules:
-                    rules_data = [rule.model_dump() for rule in matched_rules]
-                    yield f"event: metadata\ndata: {json.dumps({'matched_rules': rules_data})}\n\n"
+                    metadata["matched_rules"] = [rule.model_dump() for rule in matched_rules]
+                if suggested_questions:
+                    metadata["suggested_questions"] = suggested_questions
+                if metadata:
+                    yield f"event: metadata\ndata: {json.dumps(metadata)}\n\n"
 
                 logger.info(f"Chat completed for session {session_id}")
 

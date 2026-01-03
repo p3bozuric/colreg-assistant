@@ -45,7 +45,12 @@ export default function Chat() {
               if (chunk.type === "text") {
                 lastMessage.content += chunk.data;
               } else if (chunk.type === "metadata") {
-                lastMessage.matchedRules = chunk.matchedRules;
+                if (chunk.matchedRules) {
+                  lastMessage.matchedRules = chunk.matchedRules;
+                }
+                if (chunk.suggestedQuestions) {
+                  lastMessage.suggestedQuestions = chunk.suggestedQuestions;
+                }
               }
             }
             return updated;
@@ -71,7 +76,11 @@ export default function Chat() {
 
   return (
     <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
-      <MessageList messages={messages} isStreaming={isStreaming && messages[messages.length - 1]?.content === ""} />
+      <MessageList
+        messages={messages}
+        isStreaming={isStreaming && messages[messages.length - 1]?.content === ""}
+        onSend={handleSend}
+      />
       <ChatInput onSend={handleSend} disabled={isStreaming} />
     </div>
   );
