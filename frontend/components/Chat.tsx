@@ -5,6 +5,7 @@ import { Message } from "@/types";
 import { streamChat } from "@/lib/api";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
+import SuggestedQuestions from "./SuggestedQuestions";
 
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -74,6 +75,10 @@ export default function Chat() {
     [sessionId]
   );
 
+  // Get suggested questions from the last assistant message
+  const lastAssistantMessage = [...messages].reverse().find(m => m.role === "assistant");
+  const suggestedQuestions = !isStreaming ? lastAssistantMessage?.suggestedQuestions : undefined;
+
   return (
     <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
       <MessageList
@@ -81,7 +86,10 @@ export default function Chat() {
         isStreaming={isStreaming && messages[messages.length - 1]?.content === ""}
         onSend={handleSend}
       />
-      <ChatInput onSend={handleSend} disabled={isStreaming} />
+      <div className="sticky bottom-0 bg-background-secondary/95 backdrop-blur-sm">
+        <SuggestedQuestions questions={suggestedQuestions} onSelect={handleSend} />
+        <ChatInput onSend={handleSend} disabled={isStreaming} />
+      </div>
     </div>
   );
 }

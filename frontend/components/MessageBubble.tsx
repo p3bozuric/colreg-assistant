@@ -9,7 +9,6 @@ import { Message, MatchedRule } from "@/types";
 interface MessageBubbleProps {
   message: Message;
   isLoading?: boolean;
-  onSuggestionClick?: (question: string) => void;
 }
 
 interface RuleButtonProps {
@@ -82,12 +81,10 @@ function LoadingDots() {
   );
 }
 
-export default function MessageBubble({ message, isLoading, onSuggestionClick }: MessageBubbleProps) {
+export default function MessageBubble({ message, isLoading }: MessageBubbleProps) {
   const isUser = message.role === "user";
   const hasMatchedRules =
     !isUser && message.matchedRules && message.matchedRules.length > 0;
-  const hasSuggestions =
-    !isUser && onSuggestionClick && message.suggestedQuestions && message.suggestedQuestions.length > 0;
   const showLoading = isLoading && !message.content;
 
   return (
@@ -138,24 +135,6 @@ export default function MessageBubble({ message, isLoading, onSuggestionClick }:
           })}
         </span>
       </div>
-      {hasSuggestions && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="flex flex-col gap-1.5 mt-3"
-        >
-          {message.suggestedQuestions!.map((question, idx) => (
-            <button
-              key={idx}
-              onClick={() => onSuggestionClick!(question)}
-              className="self-start px-2.5 py-1 text-[11px] rounded-lg border border-dashed border-border/50 hover:border-primary/40 bg-transparent text-muted hover:text-foreground/70 transition-colors text-left opacity-60 hover:opacity-100"
-            >
-              {question}
-            </button>
-          ))}
-        </motion.div>
-      )}
     </motion.div>
   );
 }

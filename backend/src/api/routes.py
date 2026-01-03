@@ -72,6 +72,11 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
         async def event_generator():
             full_response = ""
             try:
+                # Send matched rules immediately (before streaming starts)
+                if matched_rules:
+                    rules_metadata = {"matched_rules": [rule.model_dump() for rule in matched_rules]}
+                    yield f"event: metadata\ndata: {json.dumps(rules_metadata)}\n\n"
+
                 # Stream LLM response directly
                 async for chunk in generate_streaming_response(messages):
                     full_response += chunk
@@ -89,14 +94,9 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
                 save_message(session_id, "user", request.message)
                 save_message(session_id, "assistant", full_response)
 
-                # Send metadata
-                metadata = {}
-                if matched_rules:
-                    metadata["matched_rules"] = [rule.model_dump() for rule in matched_rules]
+                # Send suggested questions
                 if suggested_questions:
-                    metadata["suggested_questions"] = suggested_questions
-                if metadata:
-                    yield f"event: metadata\ndata: {json.dumps(metadata)}\n\n"
+                    yield f"event: metadata\ndata: {json.dumps({'suggested_questions': suggested_questions})}\n\n"
 
                 logger.info(f"Chat completed for session {session_id}")
 

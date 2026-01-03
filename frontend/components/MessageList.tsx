@@ -78,18 +78,13 @@ export default function MessageList({
           )}
         </div>
       ) : (
-        messages.map((message, index) => {
-          const isLastAssistant =
-            message.role === "assistant" && index === messages.length - 1;
-          return (
-            <MessageBubble
-              key={message.id}
-              message={message}
-              isLoading={isStreaming && index === messages.length - 1}
-              onSuggestionClick={isLastAssistant && !isStreaming ? onSend : undefined}
-            />
-          );
-        })
+        messages.map((message, index) => (
+          <MessageBubble
+            key={message.id}
+            message={message}
+            isLoading={isStreaming && index === messages.length - 1}
+          />
+        ))
       )}
       <div ref={bottomRef} />
     </div>
