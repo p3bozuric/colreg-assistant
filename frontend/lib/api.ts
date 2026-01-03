@@ -50,18 +50,29 @@ export async function* streamChat(
 
     if (!data) return null;
 
-    if (eventType === "metadata") {
-      try {
-        const parsed = JSON.parse(data);
-        if (parsed.matched_rules) {
-          return { type: "metadata", matchedRules: parsed.matched_rules };
-        }
-      } catch {
-        // If parsing fails, treat as text
+    try {
+      const parsed = JSON.parse(data);
+
+      if (eventType === "metadata" && parsed.matched_rules) {
+        return { type: "metadata", matchedRules: parsed.matched_rules };
       }
+
+      if (parsed.text !== undefined) {
+        return { type: "text", data: parsed.text };
+      }
+
+      if (parsed.error) {
+        throw new Error(parsed.error);
+      }
+    } catch (e) {
+      // If JSON parsing fails, treat as raw text for backwards compatibility
+      if (e instanceof SyntaxError) {
+        return { type: "text", data };
+      }
+      throw e;
     }
 
-    return { type: "text", data };
+    return null;
   };
 
   while (true) {

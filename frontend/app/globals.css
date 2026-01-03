@@ -11,7 +11,7 @@
   --accent: #22d3ee;
   --muted: #64748b;
   --border: rgba(148, 163, 184, 0.1);
-  --card-bg: rgba(15, 23, 41, 0.5);
+  --card-bg: rgba(15, 23, 41, 0.85);
 }
 
 @theme inline {

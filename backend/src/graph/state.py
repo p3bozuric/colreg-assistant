@@ -1,5 +1,4 @@
-from typing import TypedDict, Annotated
-from langgraph.graph import add_messages
+from typing import TypedDict
 from src.models.extraction import RuleMetadata
 
 
@@ -10,8 +9,8 @@ class GraphState(TypedDict):
     query: str
     session_id: str
 
-    # Chat history
-    chat_history: Annotated[list[dict], add_messages]
+    # Chat history (plain dicts for LiteLLM compatibility)
+    chat_history: list[dict]
 
     # Validation
     is_valid_query: bool  # False if query is malicious or out of scope

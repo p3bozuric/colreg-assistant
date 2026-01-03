@@ -54,10 +54,11 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
         async def event_generator():
             try:
                 # Stream response in chunks for better UX
+                # JSON encode each chunk to properly escape newlines and special characters
                 chunk_size = 20
                 for i in range(0, len(response_text), chunk_size):
                     chunk = response_text[i:i + chunk_size]
-                    yield f"data: {chunk}\n\n"
+                    yield f"data: {json.dumps({'text': chunk})}\n\n"
 
                 # Send matched rules as metadata event
                 if matched_rules:
@@ -68,7 +69,7 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
 
             except Exception as e:
                 logger.error(f"Error in streaming: {e}")
-                yield f"data: [ERROR]: {str(e)}\n\n"
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
         return StreamingResponse(event_generator(), media_type="text/event-stream")
 

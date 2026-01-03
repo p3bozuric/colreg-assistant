@@ -1,11 +1,19 @@
 from datetime import datetime
-from supabase import create_client
+from supabase import create_client, Client
 from loguru import logger
 from src.config import get_settings
 
 
-settings = get_settings()
-supabase = create_client(settings.supabase_url, settings.supabase_key)
+_supabase_client: Client | None = None
+
+
+def get_supabase() -> Client:
+    """Get or create the Supabase client (lazy initialization for serverless)."""
+    global _supabase_client
+    if _supabase_client is None:
+        settings = get_settings()
+        _supabase_client = create_client(settings.supabase_url, settings.supabase_key)
+    return _supabase_client
 
 
 def save_message(session_id: str, role: str, content: str):
@@ -25,12 +33,12 @@ def save_message(session_id: str, role: str, content: str):
             "timestamp": datetime.utcnow().isoformat(),
         }
 
-        supabase.table("chat_history").insert(data).execute()
+        get_supabase().table("chat_history").insert(data).execute()
         logger.info(f"Saved {role} message for session {session_id}")
 
     except Exception as e:
+        # Don't fail the response if history saving fails
         logger.error(f"Error saving message: {e}")
-        raise
 
 
 def load_session_history(session_id: str, limit: int = 10) -> list[dict]:
@@ -46,7 +54,7 @@ def load_session_history(session_id: str, limit: int = 10) -> list[dict]:
     """
     try:
         response = (
-            supabase.table("chat_history")
+            get_supabase().table("chat_history")
             .select("role, content, timestamp")
             .eq("session_id", session_id)
             .order("timestamp", desc=False)

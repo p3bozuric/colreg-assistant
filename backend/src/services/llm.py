@@ -9,8 +9,6 @@ from pydantic import BaseModel
 from loguru import logger
 from src.config import get_settings
 
-settings = get_settings()
-
 # Configure LiteLLM
 litellm.set_verbose = False
 
@@ -34,6 +32,7 @@ def generate_sync_response(
     Returns:
         The generated text response
     """
+    settings = get_settings()
     model_name = model or settings.model_name
     logger.info(f"Generating sync response with {model_name}")
 
@@ -68,6 +67,7 @@ def generate_structured_response(
     Returns:
         Validated Pydantic model instance, or None if all retries failed
     """
+    settings = get_settings()
     model_name = model or settings.model_name
     logger.info(f"Generating structured response with {model_name}")
 
@@ -112,6 +112,7 @@ async def generate_streaming_response(
     Yields:
         Text chunks from the streaming response
     """
+    settings = get_settings()
     model_name = model or settings.model_name
     logger.info(f"Generating streaming response with {model_name}")
 

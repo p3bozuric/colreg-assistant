@@ -93,10 +93,10 @@ Analyze the user's maritime navigation query and identify which specific rules a
 ### General Information
 - Set include_general=true when: user asks general questions about COLREGs, wants an overview, asks "what are COLREGs", or the query is introductory/educational in nature
 
-## User Query:
+{conversation_context}## Current User Query:
 {query}
 
-Analyze the query and return the relevant rule identifiers. Consider that scenarios often involve multiple rules (e.g., a crossing situation involves rules 15, 16, 17, and potentially 7 and 8)."""
+Analyze the query in the context of the conversation and return the relevant rule identifiers. Consider that scenarios often involve multiple rules (e.g., a crossing situation involves rules 15, 16, 17, and potentially 7 and 8)."""
 
 
 SYSTEM_PROMPT = """You are an expert maritime navigation instructor specializing in COLREGs (International Regulations for Preventing Collisions at Sea).
@@ -154,7 +154,22 @@ def extract_rules_node(state: GraphState) -> dict:
     """Extract relevant COLREG rules using LLM structured output."""
     logger.info("Extracting relevant COLREG rules...")
 
-    prompt = EXTRACTION_PROMPT.format(query=state["query"])
+    # Build conversation context from chat history
+    chat_history = state.get("chat_history", [])
+    conversation_context = ""
+    if chat_history:
+        context_lines = ["## Conversation Context:"]
+        for msg in chat_history[-6:]:  # Last 3 exchanges max
+            role = "User" if msg["role"] == "user" else "Assistant"
+            # Truncate long messages for context
+            content = msg["content"][:500] + "..." if len(msg["content"]) > 500 else msg["content"]
+            context_lines.append(f"{role}: {content}")
+        conversation_context = "\n".join(context_lines) + "\n\n"
+
+    prompt = EXTRACTION_PROMPT.format(
+        query=state["query"],
+        conversation_context=conversation_context
+    )
 
     # Try LLM structured extraction (3 retries)
     result = generate_structured_response(prompt, RuleExtraction, max_retries=3)
@@ -168,9 +183,14 @@ def extract_rules_node(state: GraphState) -> dict:
             "extraction_method": "llm"
         }
 
-    # Fallback to keyword matching
+    # Fallback to keyword matching (includes current query + recent history)
     logger.warning("LLM extraction failed, using keyword fallback")
-    fallback_rules = keyword_fallback_extraction(state["query"])
+    fallback_query = state["query"]
+    if chat_history:
+        # Include recent user messages for better keyword matching
+        recent_user_msgs = [m["content"] for m in chat_history[-4:] if m["role"] == "user"]
+        fallback_query = " ".join(recent_user_msgs + [state["query"]])
+    fallback_rules = keyword_fallback_extraction(fallback_query)
 
     return {
         "extracted_rules": fallback_rules,
