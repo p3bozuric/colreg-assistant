@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Message } from "@/types";
+import { Message, ContentItem } from "@/types";
 import { streamChat } from "@/lib/api";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
@@ -32,6 +32,7 @@ export default function Chat() {
         id: `assistant_${Date.now()}`,
         role: "assistant",
         content: "",
+        contentItems: [],
         timestamp: new Date(),
       };
 
@@ -40,33 +41,82 @@ export default function Chat() {
       try {
         for await (const chunk of streamChat(content, sessionId)) {
           setMessages((prev) => {
-            const updated = [...prev];
-            const lastMessage = updated[updated.length - 1];
+            const lastIndex = prev.length - 1;
+            const lastMessage = prev[lastIndex];
             if (lastMessage.role === "assistant") {
+              const updated = [...prev];
+
               if (chunk.type === "text") {
-                lastMessage.content += chunk.data;
+                // Append text to content and contentItems
+                const newContent = lastMessage.content + chunk.data;
+                const items = [...(lastMessage.contentItems || [])];
+
+                // Append to last text item or create new one
+                const lastItem = items[items.length - 1];
+                if (lastItem && lastItem.type === "text") {
+                  items[items.length - 1] = {
+                    type: "text",
+                    content: (lastItem.content as string) + chunk.data,
+                  };
+                } else {
+                  items.push({ type: "text", content: chunk.data });
+                }
+
+                updated[lastIndex] = {
+                  ...lastMessage,
+                  content: newContent,
+                  contentItems: items,
+                };
+              } else if (chunk.type === "visual") {
+                // Add visual to contentItems
+                const items = [...(lastMessage.contentItems || [])];
+                items.push({ type: "visual", content: chunk.visual });
+
+                updated[lastIndex] = {
+                  ...lastMessage,
+                  contentItems: items,
+                };
               } else if (chunk.type === "metadata") {
-                if (chunk.matchedRules) {
-                  lastMessage.matchedRules = chunk.matchedRules;
+                // Merge additional rules with existing matched rules
+                let mergedRules = chunk.matchedRules ?? lastMessage.matchedRules;
+                if (chunk.additionalRules && chunk.additionalRules.length > 0) {
+                  const existingRules = lastMessage.matchedRules ?? [];
+                  const existingIds = new Set(existingRules.map(r => r.id));
+                  const newRules = chunk.additionalRules.filter(r => !existingIds.has(r.id));
+                  mergedRules = [...existingRules, ...newRules];
                 }
-                if (chunk.suggestedQuestions) {
-                  lastMessage.suggestedQuestions = chunk.suggestedQuestions;
-                }
+                updated[lastIndex] = {
+                  ...lastMessage,
+                  matchedRules: mergedRules,
+                  suggestedQuestions: chunk.suggestedQuestions ?? lastMessage.suggestedQuestions,
+                };
+              } else if (chunk.type === "error") {
+                updated[lastIndex] = {
+                  ...lastMessage,
+                  content: lastMessage.content + `\n\nError: ${chunk.error}`,
+                };
               }
+              return updated;
             }
-            return updated;
+            return prev;
           });
         }
       } catch (error) {
         console.error("Error streaming response:", error);
+        const errorMessage = "Sorry, there was an error processing your request. Please try again.";
         setMessages((prev) => {
-          const updated = [...prev];
-          const lastMessage = updated[updated.length - 1];
+          const lastIndex = prev.length - 1;
+          const lastMessage = prev[lastIndex];
           if (lastMessage.role === "assistant") {
-            lastMessage.content =
-              "Sorry, there was an error processing your request. Please try again.";
+            const updated = [...prev];
+            updated[lastIndex] = {
+              ...lastMessage,
+              content: errorMessage,
+              contentItems: [{ type: "text", content: errorMessage }],
+            };
+            return updated;
           }
-          return updated;
+          return prev;
         });
       } finally {
         setIsStreaming(false);

@@ -8,13 +8,34 @@ export interface MatchedRule {
   keywords: string[];
 }
 
+export type VisualType =
+  | "vessel-lights"
+  | "light-arcs"
+  | "day-shapes"
+  | "sound-signal"
+  | "morse-signal";
+
+export interface Visual {
+  type: VisualType;
+  data: Record<string, unknown>;
+  caption?: string;
+}
+
+// Content item for inline rendering (text or visual)
+export interface ContentItem {
+  type: "text" | "visual";
+  content: string | Visual;
+}
+
 export interface Message {
   id: string;
   role: "user" | "assistant";
-  content: string;
+  content: string;  // Raw text content for compatibility
+  contentItems?: ContentItem[];  // Parsed inline content (text + visuals)
   timestamp: Date;
   matchedRules?: MatchedRule[];
   suggestedQuestions?: string[];
+  visuals?: Visual[];  // Legacy: standalone visuals at end
 }
 
 export interface ChatRequest {

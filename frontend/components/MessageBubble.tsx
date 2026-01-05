@@ -4,7 +4,9 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Message, MatchedRule } from "@/types";
+import { Message, MatchedRule, ContentItem, Visual } from "@/types";
+import { VisualRenderer } from "./visuals";
+import VisualRendererDefault from "./visuals/VisualRenderer";
 
 interface MessageBubbleProps {
   message: Message;
@@ -45,7 +47,7 @@ function RuleButton({ rule }: RuleButtonProps) {
             </h4>
             <h5 className="font-medium text-sm mb-2">{rule.title}</h5>
             <div className="text-xs text-muted mb-2">
-              Part {rule.part}, Section {rule.section}
+              Part {rule.part}{rule.section ? `, Section ${rule.section}` : ''}
             </div>
             <p className="text-sm mb-3 text-foreground/90">{rule.content}</p>
             <div className="flex flex-wrap gap-1">
@@ -81,11 +83,50 @@ function LoadingDots() {
   );
 }
 
+interface InlineContentRendererProps {
+  contentItems: ContentItem[];
+}
+
+function InlineContentRenderer({ contentItems }: InlineContentRendererProps) {
+  return (
+    <div className="prose prose-invert prose-sm md:prose-base max-w-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 prose-code:bg-white/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-pre:bg-white/10 prose-pre:border prose-pre:border-white/20">
+      {contentItems.map((item, idx) => {
+        if (item.type === "text") {
+          return (
+            <ReactMarkdown key={idx} remarkPlugins={[remarkGfm]}>
+              {item.content as string}
+            </ReactMarkdown>
+          );
+        } else if (item.type === "visual") {
+          return (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="my-4 flex justify-center not-prose"
+            >
+              <VisualRendererDefault visual={item.content as Visual} />
+            </motion.div>
+          );
+        }
+        return null;
+      })}
+    </div>
+  );
+}
+
 export default function MessageBubble({ message, isLoading }: MessageBubbleProps) {
   const isUser = message.role === "user";
   const hasMatchedRules =
     !isUser && message.matchedRules && message.matchedRules.length > 0;
   const showLoading = isLoading && !message.content;
+
+  // Use contentItems for inline rendering if available
+  const hasContentItems = !isUser && message.contentItems && message.contentItems.length > 0;
+
+  // Legacy: standalone visuals at end (backward compatibility)
+  const hasLegacyVisuals = !isUser && !hasContentItems && message.visuals && message.visuals.length > 0;
 
   return (
     <motion.div
@@ -107,11 +148,20 @@ export default function MessageBubble({ message, isLoading }: MessageBubbleProps
           </p>
         ) : showLoading ? (
           <LoadingDots />
+        ) : hasContentItems ? (
+          <InlineContentRenderer contentItems={message.contentItems!} />
         ) : (
           <div className="prose prose-invert prose-sm md:prose-base max-w-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 prose-code:bg-white/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-pre:bg-white/10 prose-pre:border prose-pre:border-white/20">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {message.content}
             </ReactMarkdown>
+          </div>
+        )}
+        {hasLegacyVisuals && (
+          <div className="mt-4 flex flex-wrap gap-4 justify-center">
+            {message.visuals!.map((visual, idx) => (
+              <VisualRenderer key={idx} visual={visual} />
+            ))}
           </div>
         )}
         {hasMatchedRules && (
