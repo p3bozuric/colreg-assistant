@@ -15,6 +15,7 @@ interface DayShapesProps {
   size?: "sm" | "md" | "lg";
   animated?: boolean;
   label?: string;
+  title?: string;
   description?: string;
   rule?: string;
 }
@@ -137,6 +138,7 @@ export default function DayShapes({
   size = "md",
   animated = true,
   label,
+  title,
   description,
   rule,
 }: DayShapesProps) {
@@ -178,17 +180,17 @@ export default function DayShapes({
 
         {/* Hover tooltip */}
         <AnimatePresence>
-          {isHovered && (description || rule) && (
+          {isHovered && (title || description || rule) && (
             <motion.div
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 5 }}
               className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-3 rounded-lg bg-card-bg border border-border shadow-xl backdrop-blur-md text-sm"
             >
-              {description && (
-                <p className="font-medium text-foreground mb-1">{description}</p>
+              {title && (
+                <p className="font-medium text-foreground mb-1">{title}</p>
               )}
-              <p className="text-xs text-muted mb-1">{shapesList}</p>
+              <p className="text-xs text-muted mb-1">{description}</p>
               {rule && (
                 <p className="text-xs text-primary">{rule}</p>
               )}
@@ -201,60 +203,104 @@ export default function DayShapes({
 }
 
 // Common day shape configurations from COLREGs
-export const DAY_SHAPE_CONFIGS: Record<string, { shapes: ShapeType[]; description: string; rule: string }> = {
+export const DAY_SHAPE_CONFIGS: Record<string, { shapes: ShapeType[]; title: string; description: string; rule: string }> = {
   "anchored": {
     shapes: ["ball"],
-    description: "Vessel at anchor",
+    title: "Anchored",
+    description: "Vessel at anchor - placed where best seen in the fore part of the vessel.",
     rule: "Rule 30(a)",
   },
   "nuc": {
     shapes: ["ball", "ball"],
-    description: "Not under command",
+    title: "Not under command",
+    description: "Vessel is not under command - shapes in a vertical line where they can best be seen",
     rule: "Rule 27(a)",
   },
   "ram": {
     shapes: ["ball", "diamond", "ball"],
-    description: "Restricted in ability to maneuver",
+    title: "Restricted in ability to maneuver",
+    description: "Vessel restricted in ability to maneuver - placed in a vertical line where they can best be seen",
     rule: "Rule 27(b)",
+  },
+  "ram-underwater-ops": {
+    shapes: ["ball", "diamond", "ball"],
+    title: "Underwater operations",
+    description: "Vessel restricted in ability to maneuver because of underwater operations - placed in a vertical line where they can best be seen. Supplementary shapes required for indication of obstructions and free passage.",
+    rule: "Rule 27(b)(ii)",
+  },
+  "ram-underwater-ops-vessel-may-pass": {
+    shapes: ["diamond", "diamond"],
+    title: "Underwater operations - Vessel May Pass",
+    description: "Shapes that indicate the side on which another vessel may pass in case of underwater operations.",
+    rule: "Rule 27(b)(ii)",
+  },
+  "ram-underwater-ops-obstruction": {
+    shapes: ["ball", "ball"],
+    title: "Underwater operations - Obstruction",
+    description: "Shapes that indicate the side on which obstructions exist in case of underwater operations.",
+    rule: "Rule 27(b)(ii)",
   },
   "cbd": {
     shapes: ["cylinder"],
-    description: "Constrained by draught",
+    title: "Constrained by draught",
+    description: "Constrained by draught - exhibiting the shape where it can best be seen.",
     rule: "Rule 28",
   },
   "aground": {
     shapes: ["ball", "ball", "ball"],
-    description: "Vessel aground",
+    title: "Vessel aground",
+    description: "Aground vessel should exhibit the shapes in a vertical line where they can best be seen.",
     rule: "Rule 30(d)",
   },
   "sailing-motor": {
     shapes: ["cone-apex-down"],
+    title: "Sailing vessel under power (motor-sailing)",
     description: "Sailing vessel under power (motor-sailing)",
     rule: "Rule 25(e)",
   },
-  "fishing-trawling": {
-    shapes: ["cone-apex-up", "cone-apex-down"],
-    description: "Vessel engaged in trawling",
-    rule: "Rule 26(b)",
-  },
-  "fishing-other": {
-    shapes: ["cone-apex-up", "cone-apex-down"],
-    description: "Vessel engaged in fishing (other than trawling)",
-    rule: "Rule 26(c)",
-  },
   "towing-over-200m": {
     shapes: ["diamond"],
-    description: "Vessel towing (tow length over 200m)",
-    rule: "Rule 24(a)",
+    title: "Towing over 200m",
+    description: "Vessel towing & vessel being towed both exhibit the shape (tow length over 200m)",
+    rule: "Rule 24",
   },
+  "towing-submerged-under-200m": {
+    shapes: ["diamond"],
+    title: "Towing Partially Submerged under 200m",
+    description: "Only partially submerged vessel being towed needs to exhibit the shape (tow length under 200m)",
+    rule: "Rule 24",
+  },
+  "towing-submerged-over-200m": {
+    shapes: ["diamond"],
+    title: "Towing Partially Submerged over 200m",
+    description: "Partially submerged vessel exhibit the shape on fore and aft, while towing vessel exhibits the shape where best seen (tow length over 200m)",
+    rule: "Rule 24",
+  },
+  "fishing": {
+    shapes: ["cone-apex-down", "cone-apex-up"],
+    title: "Fishing - Regular",
+    description: "Vessel engaged in trawling or other fishing other then trawling (but gear does not extend more than 150m horizontally from the vessel)",
+    rule: "Rule 26",
+  },
+  "fishing-gear": {
+    shapes: ["cone-apex-up"],
+    title: "Fishing - Gear Over 150m",
+    description: "Vessel engaged in fishing - when gear extends more than 150m horizontally from the vessel. This shape should be exhibited on the side on which the gear is extended.",
+    rule: "Rule 26",
+  },
+
+// TODO: This situation is not covered well, it should be like a triangle: https://www.ecolregs.com/index.php?option=com_k2&view=item&id=361:a-vessel-engaged-in-mine-clearance-operations-underway-shapes&Itemid=505&lang=en
   "mine-clearance": {
     shapes: ["ball", "ball", "ball"],
-    description: "Vessel engaged in mine clearance",
+    title: "Mine Clearance",
+    description: "Vessel engaged in mine clearance. One of these shapes shall be exhibited near the foremast head and one at each end of the fore yard. These shapes indicate that it is dangerous for another vessel to approach within 1000 m of the mine clearance vessel.",
     rule: "Rule 27(f)",
   },
+//TODO: this situation needs to be covered: https://www.ecolregs.com/index.php?option=com_k2&view=item&id=358:a-vessel-engaged-in-diving-operations-sign&Itemid=505&lang=en
   "diving-operations": {
-    shapes: ["ball", "diamond", "ball"],
-    description: "Vessel engaged in diving operations (RAM)",
-    rule: "Rule 27(b)",
+    shapes: ["ball"],
+    title: "Diving Operations",
+    description: "When not practicable to exhibit usual shapes, a vessel engaged in diving operations may exhibit a rigid replica of the International Code flag 'A' now less then 1 metre in height.",
+    rule: "Rule 27(d)",
   },
 };

@@ -72,10 +72,11 @@ export default function VisualsDemo() {
                 <DayShapes
                   shapes={config.shapes}
                   size="md"
+                  title={config.title}
                   description={config.description}
                   rule={config.rule}
                 />
-                <p className="text-xs text-muted mt-2 text-center">{config.description}</p>
+                <p className="text-xs text-muted mt-2 text-center">{config.title}</p>
               </div>
             ))}
           </div>
