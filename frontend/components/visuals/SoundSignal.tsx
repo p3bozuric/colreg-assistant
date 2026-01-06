@@ -1,20 +1,20 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 
 type BlastType = "short" | "prolonged";
 
 interface SoundSignalProps {
-  pattern: string; // e.g., "prolonged-short-short" or "short-short"
+  pattern: string;
   playable?: boolean;
   size?: "sm" | "md" | "lg";
 }
 
-const SHORT_DURATION = 400; // ~0.4 second (faster for demo)
-const PROLONGED_DURATION = 2000; // ~2 seconds (faster for demo)
-const BLAST_GAP = 400; // 0.4 second between blasts
-const FREQUENCY = 400; // Lower frequency for fog horn effect
+const SHORT_DURATION = 400;
+const PROLONGED_DURATION = 2000;
+const BLAST_GAP = 400;
+const FREQUENCY = 400;
 
 export default function SoundSignal({
   pattern,
@@ -23,8 +23,10 @@ export default function SoundSignal({
 }: SoundSignalProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  
+  // Refs to manage audio state and interruption
   const audioContextRef = useRef<AudioContext | null>(null);
-  const gainNodeRef = useRef<GainNode | null>(null);
+  const shouldStopRef = useRef(false);
 
   const sizeClasses = {
     sm: { short: "w-3 h-4", prolonged: "w-10 h-4", gap: "gap-1.5", text: "text-xs" },
@@ -36,26 +38,53 @@ export default function SoundSignal({
     return pat.split("-").map((p) => p.trim() as BlastType);
   };
 
+  // Cleanup on unmount to ensure audio stops if user navigates away
+  useEffect(() => {
+    return () => {
+      stopSound();
+    };
+  }, []);
+
+  const stopSound = useCallback(() => {
+    // 1. Signal the loop to stop
+    shouldStopRef.current = true;
+    
+    // 2. Immediately kill the audio
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+
+    // 3. Reset UI state
+    setIsPlaying(false);
+    setActiveIndex(null);
+  }, []);
+
   const playBlast = useCallback((type: BlastType): Promise<void> => {
     const duration = type === "short" ? SHORT_DURATION : PROLONGED_DURATION;
 
     return new Promise((resolve) => {
-      if (!audioContextRef.current) {
+      // If stopped mid-wait, resolve immediately to exit faster
+      if (shouldStopRef.current) {
+        resolve();
+        return;
+      }
+
+      // Re-initialize context if it was closed by a previous stop
+      if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
         audioContextRef.current = new AudioContext();
       }
+
       const ctx = audioContextRef.current;
       const oscillator = ctx.createOscillator();
       const gainNode = ctx.createGain();
-      gainNodeRef.current = gainNode;
 
       oscillator.connect(gainNode);
       gainNode.connect(ctx.destination);
 
-      // Create fog horn-like sound with multiple harmonics
       oscillator.frequency.value = FREQUENCY;
       oscillator.type = "sawtooth";
 
-      // Fade in and out for realistic fog horn effect
       gainNode.gain.setValueAtTime(0, ctx.currentTime);
       gainNode.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.1);
       gainNode.gain.setValueAtTime(0.2, ctx.currentTime + duration / 1000 - 0.2);
@@ -64,27 +93,47 @@ export default function SoundSignal({
       oscillator.start(ctx.currentTime);
       oscillator.stop(ctx.currentTime + duration / 1000);
 
-      setTimeout(resolve, duration);
+      setTimeout(() => {
+        resolve();
+      }, duration);
     });
   }, []);
 
-  const playPattern = useCallback(async () => {
-    if (isPlaying) return;
+  const togglePlayback = useCallback(async () => {
+    // If currently playing, treat this click as a STOP
+    if (isPlaying) {
+      stopSound();
+      return;
+    }
+
+    // START Playback
+    shouldStopRef.current = false;
     setIsPlaying(true);
 
     const blasts = parsePattern(pattern);
+    
     for (let i = 0; i < blasts.length; i++) {
+      // Check before every blast
+      if (shouldStopRef.current) break;
+      
       setActiveIndex(i);
       await playBlast(blasts[i]);
+      
+      // Check after blast/before gap
+      if (shouldStopRef.current) break;
+
       if (i < blasts.length - 1) {
         setActiveIndex(null);
         await new Promise((r) => setTimeout(r, BLAST_GAP));
       }
     }
 
-    setActiveIndex(null);
-    setIsPlaying(false);
-  }, [pattern, isPlaying, playBlast]);
+    // Cleanup after natural finish
+    if (!shouldStopRef.current) {
+      setActiveIndex(null);
+      setIsPlaying(false);
+    }
+  }, [pattern, isPlaying, playBlast, stopSound]);
 
   const blasts = parsePattern(pattern);
   const classes = sizeClasses[size];
@@ -121,14 +170,14 @@ export default function SoundSignal({
         </div>
         {playable && (
           <button
-            onClick={playPattern}
-            disabled={isPlaying}
-            className={`p-1.5 rounded-full border border-border/50 hover:border-amber-400/50 hover:bg-amber-400/10 transition-colors disabled:opacity-50 ${classes.text}`}
-            title="Play sound signal"
+            onClick={togglePlayback}
+            // REMOVED: disabled={isPlaying}
+            className={`p-1.5 rounded-full border border-border/50 hover:border-amber-400/50 hover:bg-amber-400/10 transition-colors ${classes.text}`}
+            title={isPlaying ? "Stop signal" : "Play signal"}
           >
             {isPlaying ? (
               <svg
-                className="w-4 h-4 text-amber-400 animate-pulse"
+                className="w-4 h-4 text-amber-400" // Removed animate-pulse so the button looks stable
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
@@ -156,80 +205,109 @@ export default function SoundSignal({
 }
 
 // Common fog signals from COLREGs Rule 35 and maneuvering signals from Rule 34
-export const FOG_SIGNALS: Record<string, { pattern: string; description: string; rule?: string }> = {
+export const FOG_SIGNALS: Record<string, { pattern: string; title: string; description: string; interval?: string; rule?: string }> = {
   "power-driven-making-way": {
     pattern: "prolonged",
-    description: "Power-driven vessel making way through water",
+    title: "Power-driven vessel making way",
+    description: "Power-driven vessel making way through water must sound one prolonged blast at intervals of not more than 2 minutes",
+    interval: "2 minutes",
     rule: "Rule 35(a)",
   },
   "power-driven-underway-not-making-way": {
     pattern: "prolonged-prolonged",
-    description: "Power-driven vessel underway but stopped",
+    title: "Power-driven vessel not making way",
+    description: "Power-driven vessel underway but stopped and making no way through the water must sound at intervals of not more than 2 minutes two prolonged blasts in succession with an interval of about 2 seconds between them.",
+    interval: "2 minutes",
     rule: "Rule 35(b)",
   },
   "nuc-ram-cbd-sailing-fishing": {
     pattern: "prolonged-short-short",
-    description: "NUC, RAM, CBD, sailing vessel, fishing vessel, or vessel towing/pushing",
+    title: "NUC, RAM, CBD, sailing, fishing, or towing/pushing vessel",
+    description: "Vessels not under command, with restricted maneuverability, constrained by draft, sailing vessel, fishing vessel, or vessel towing/pushing must sound at intervals of not more than 2 minutes three blasts in succession, namely one prolonged followed by two short blasts.",
+    interval: "2 minutes",
     rule: "Rule 35(c)",
+  },
+  "fishing-anchor": {
+    pattern: "prolonged-short-short",
+    title: "Fishing vessel and RAM at anchor",
+    description: "Vessels with restricted maneuverability and fishing vessels at anchor shall sound one prolonged followed by two short blasts.",
+    interval: "2 minutes",
+    rule: "Rule 35(d)",
   },
   "vessel-towed": {
     pattern: "prolonged-short-short-short",
-    description: "Vessel being towed (if manned)",
+    title: "Vessel being towed",
+    description: "Vessel being towed if manned must at intervals of not more than 2 minutes sound four blasts in succession, namely one prolonged followed by three short blasts. When practicable, this signal shall be made immediately after the signal made by the towing vessel.",
+    interval: "2 minutes",
     rule: "Rule 35(e)",
   },
   "pilot-vessel": {
-    pattern: "prolonged-short-short-short-short",
-    description: "Pilot vessel on duty (identity signal)",
-    rule: "Rule 35(j)",
+    pattern: "short-short-short-short",
+    title: "Pilot vessel on duty",
+    description: "Besides usual signals for making way, not making way and anchor, pilot vessel on duty (identity signal)",
+    interval: "2 minutes",
+    rule: "Rule 35(k)",
   },
   "anchored": {
-    pattern: "short-short-short",
-    description: "Vessel at anchor (rapid ringing of bell)",
+    pattern: "short-prolonged-short",
+    title: "Vessel at anchor",
+    description: "Vessel at anchor in intervals of not more then 1 minute do rapid ringing of bell for 5 seconds (if longer then 100m this will be followed by 5 seconds of gong), followed by one short blast, prolonged blast, and one short blast.",
+    interval: "1 minute",
     rule: "Rule 35(g)",
   },
   "aground": {
     pattern: "short-short-short",
-    description: "Vessel aground (3 strokes before and after bell)",
+    title: "Vessel aground",
+    description: "Vessel aground must give bell signal, if required - gong as well. In addition - give 3 separate and distinct strokes on the bell before and after the rapid ringing of the bell.",
+    interval: "1 minute",
     rule: "Rule 35(h)",
   },
   // Maneuvering and warning signals (Rule 34)
   "altering-to-starboard": {
     pattern: "short",
+    title: "Altering course to starboard",
     description: "I am altering my course to starboard",
     rule: "Rule 34(a)",
   },
   "altering-to-port": {
     pattern: "short-short",
+    title: "Altering course to port",
     description: "I am altering my course to port",
     rule: "Rule 34(a)",
   },
   "operating-astern": {
     pattern: "short-short-short",
+    title: "Operating astern propulsion",
     description: "I am operating astern propulsion",
     rule: "Rule 34(a)",
   },
   "danger-doubt": {
     pattern: "short-short-short-short-short",
+    title: "Danger signal / doubt intentions",
     description: "Danger signal - I do not understand your intentions / doubt you are taking sufficient action to avoid collision",
     rule: "Rule 34(d)",
   },
   "overtaking-starboard": {
     pattern: "prolonged-prolonged-short",
+    title: "Overtaking on starboard side",
     description: "I intend to overtake on your starboard side",
-    rule: "Rule 34(c)",
+    rule: "Rule 34(c)(i)",
   },
   "overtaking-port": {
     pattern: "prolonged-prolonged-short-short",
+    title: "Overtaking on port side",
     description: "I intend to overtake on your port side",
-    rule: "Rule 34(c)",
+    rule: "Rule 34(c)(i)",
   },
   "overtaking-agreement": {
     pattern: "prolonged-short-prolonged-short",
+    title: "Agreement to be overtaken",
     description: "Agreement to be overtaken",
-    rule: "Rule 34(c)",
+    rule: "Rule 34(c)(ii)",
   },
   "approaching-bend": {
     pattern: "prolonged",
+    title: "Approaching bend or obstruction",
     description: "Vessel approaching a bend or channel obstruction",
     rule: "Rule 34(e)",
   },

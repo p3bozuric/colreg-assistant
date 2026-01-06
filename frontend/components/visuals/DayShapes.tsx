@@ -8,7 +8,9 @@ type ShapeType =
   | "cone-apex-up"
   | "cone-apex-down"
   | "diamond"
-  | "cylinder";
+  | "cylinder"
+  | "ball-row"
+  | "flag-alpha";
 
 interface DayShapesProps {
   shapes: ShapeType[];
@@ -27,6 +29,8 @@ const SHAPE_DESCRIPTIONS: Record<ShapeType, string> = {
   "cone-apex-down": "Cone with apex pointing downward",
   "diamond": "Diamond shape (two cones base to base)",
   "cylinder": "Cylinder shape",
+  "ball-row": "Two balls (yard arm indication)",
+  "flag-alpha": "International Code flag 'A' (Rigid replica)",
 };
 
 const SIZE_CONFIG = {
@@ -44,7 +48,14 @@ interface ShapeProps {
 }
 
 function Shape({ type, size, strokeWidth, animated, index }: ShapeProps) {
-  const center = size / 2;
+  // Determine width based on shape type
+  // ball-row needs extra width to accommodate the wide yard-arm spread
+  const isWideShape = type === "ball-row";
+  const actualWidth = isWideShape ? size * 3 : size;
+  
+  // centralized coordinates
+  const centerX = actualWidth / 2;
+  const centerY = size / 2;
   const radius = (size - strokeWidth * 2) / 2;
 
   const animationProps = animated
@@ -60,8 +71,8 @@ function Shape({ type, size, strokeWidth, animated, index }: ShapeProps) {
       case "ball":
         return (
           <circle
-            cx={center}
-            cy={center}
+            cx={centerX}
+            cy={centerY}
             r={radius * 0.8}
             className="fill-foreground/90 stroke-foreground"
             strokeWidth={strokeWidth}
@@ -71,7 +82,7 @@ function Shape({ type, size, strokeWidth, animated, index }: ShapeProps) {
       case "cone-apex-up":
         return (
           <polygon
-            points={`${center},${strokeWidth} ${size - strokeWidth},${size - strokeWidth} ${strokeWidth},${size - strokeWidth}`}
+            points={`${centerX},${strokeWidth} ${centerX + radius},${size - strokeWidth} ${centerX - radius},${size - strokeWidth}`}
             className="fill-foreground/90 stroke-foreground"
             strokeWidth={strokeWidth}
             strokeLinejoin="round"
@@ -81,7 +92,7 @@ function Shape({ type, size, strokeWidth, animated, index }: ShapeProps) {
       case "cone-apex-down":
         return (
           <polygon
-            points={`${strokeWidth},${strokeWidth} ${size - strokeWidth},${strokeWidth} ${center},${size - strokeWidth}`}
+            points={`${centerX - radius},${strokeWidth} ${centerX + radius},${strokeWidth} ${centerX},${size - strokeWidth}`}
             className="fill-foreground/90 stroke-foreground"
             strokeWidth={strokeWidth}
             strokeLinejoin="round"
@@ -91,7 +102,7 @@ function Shape({ type, size, strokeWidth, animated, index }: ShapeProps) {
       case "diamond":
         return (
           <polygon
-            points={`${center},${strokeWidth} ${size - strokeWidth},${center} ${center},${size - strokeWidth} ${strokeWidth},${center}`}
+            points={`${centerX},${strokeWidth} ${centerX + radius},${centerY} ${centerX},${size - strokeWidth} ${centerX - radius},${centerY}`}
             className="fill-foreground/90 stroke-foreground"
             strokeWidth={strokeWidth}
             strokeLinejoin="round"
@@ -99,21 +110,73 @@ function Shape({ type, size, strokeWidth, animated, index }: ShapeProps) {
         );
 
       case "cylinder":
-        // Draw cylinder as rectangle with rounded ends
         const cylinderWidth = size * 0.6;
         const cylinderHeight = size * 0.85;
-        const x = (size - cylinderWidth) / 2;
-        const y = (size - cylinderHeight) / 2;
+        const cylX = (actualWidth - cylinderWidth) / 2;
+        const cylY = (size - cylinderHeight) / 2;
         return (
           <rect
-            x={x}
-            y={y}
+            x={cylX}
+            y={cylY}
             width={cylinderWidth}
             height={cylinderHeight}
             rx={cylinderWidth / 2}
             className="fill-foreground/90 stroke-foreground"
             strokeWidth={strokeWidth}
           />
+        );
+
+      case "ball-row":
+        // Wide yard-arm spread
+        // We use a spread factor relative to size to ensure good proportions
+        const spread = size * 1.2; 
+        
+        return (
+          <g className="fill-foreground/90 stroke-foreground">
+            {/* Yard arm horizontal line */}
+            <line 
+               x1={centerX - spread} 
+               y1={centerY} 
+               x2={centerX + spread} 
+               y2={centerY} 
+               strokeWidth={strokeWidth}
+               className="stroke-foreground"
+             />
+            {/* Left Ball */}
+            <circle
+              cx={centerX - spread}
+              cy={centerY}
+              r={radius * 0.7} 
+              strokeWidth={strokeWidth}
+            />
+            {/* Right Ball */}
+            <circle
+              cx={centerX + spread}
+              cy={centerY}
+              r={radius * 0.7}
+              strokeWidth={strokeWidth}
+            />
+          </g>
+        );
+
+      case "flag-alpha":
+        // Rigid replica of International Code flag 'A'
+        // Centered in the available width
+        const flagX = centerX - (size/2); 
+        return (
+          <g strokeWidth={strokeWidth} strokeLinejoin="round">
+            <rect
+              x={flagX + strokeWidth}
+              y={strokeWidth}
+              width={(size / 2) - strokeWidth}
+              height={size - (strokeWidth * 2)}
+              className="fill-blue-600 stroke-foreground"
+            />
+            <polygon
+              points={`${flagX + size/2},${strokeWidth} ${flagX + size - strokeWidth},${strokeWidth} ${flagX + size - strokeWidth * 4},${centerY} ${flagX + size - strokeWidth},${size - strokeWidth} ${flagX + size/2},${size - strokeWidth}`}
+              className="fill-white stroke-foreground"
+            />
+          </g>
         );
 
       default:
@@ -123,9 +186,9 @@ function Shape({ type, size, strokeWidth, animated, index }: ShapeProps) {
 
   return (
     <motion.svg
-      width={size}
+      width={actualWidth}
       height={size}
-      viewBox={`0 0 ${size} ${size}`}
+      viewBox={`0 0 ${actualWidth} ${size}`}
       {...animationProps}
     >
       {renderShape()}
@@ -289,18 +352,17 @@ export const DAY_SHAPE_CONFIGS: Record<string, { shapes: ShapeType[]; title: str
     rule: "Rule 26",
   },
 
-// TODO: This situation is not covered well, it should be like a triangle: https://www.ecolregs.com/index.php?option=com_k2&view=item&id=361:a-vessel-engaged-in-mine-clearance-operations-underway-shapes&Itemid=505&lang=en
   "mine-clearance": {
-    shapes: ["ball", "ball", "ball"],
-    title: "Mine Clearance",
-    description: "Vessel engaged in mine clearance. One of these shapes shall be exhibited near the foremast head and one at each end of the fore yard. These shapes indicate that it is dangerous for another vessel to approach within 1000 m of the mine clearance vessel.",
-    rule: "Rule 27(f)",
+      // Top ball + Row of two balls = Triangle layout
+      shapes: ["ball", "ball-row"], 
+      title: "Mine Clearance",
+      description: "Vessel engaged in mine clearance. Three balls: One at foremast head and one at each end of the fore yard. Dangerous to approach within 1000m.",
+      rule: "Rule 27(f)",
   },
-//TODO: this situation needs to be covered: https://www.ecolregs.com/index.php?option=com_k2&view=item&id=358:a-vessel-engaged-in-diving-operations-sign&Itemid=505&lang=en
   "diving-operations": {
-    shapes: ["ball"],
+    shapes: ["flag-alpha"],
     title: "Diving Operations",
-    description: "When not practicable to exhibit usual shapes, a vessel engaged in diving operations may exhibit a rigid replica of the International Code flag 'A' now less then 1 metre in height.",
+    description: "Vessel engaged in diving operations (too small for standard shapes). Rigid replica of International Code flag 'A' (at least 1m height).",
     rule: "Rule 27(d)",
   },
 };
