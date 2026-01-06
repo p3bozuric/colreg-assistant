@@ -14,6 +14,7 @@ export type VesselType =
   | "trawling"
   | "nuc"
   | "ram"
+  | "ram-underwater"
   | "cbd"
   | "towing"
   | "pushing"
@@ -53,7 +54,8 @@ export const VESSEL_TYPES: Record<VesselType, string> = {
   fishing: "Vessel engaged in fishing (other than trawling)",
   trawling: "Vessel engaged in trawling",
   nuc: "Vessel not under command",
-  ram: "Vessel restricted in ability to maneuver",
+  ram: "Restricted manueverability",
+  "ram-underwater": "Restricted manueverability - underwater operations",
   cbd: "Vessel constrained by her draught",
   towing: "Power-driven vessel towing",
   pushing: "Power-driven vessel pushing ahead",
@@ -233,15 +235,6 @@ const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, LightConfig[]>> = 
       { id: "stern", x: 94, y: 74, color: "white", label: "Sternlight" },
       { id: "towing", x: 94, y: 64, color: "yellow", label: "Towing light" },
     ],
-    "Underwater operations": [
-      { id: "ar-red1", x: 22, y: 35, color: "red", label: "All-round red (upper)", isAllRound: true },
-      { id: "ar-white", x: 22, y: 45, color: "white", label: "All-round white (middle)", isAllRound: true },
-      { id: "ar-red2", x: 22, y: 55, color: "red", label: "All-round red (lower)", isAllRound: true },
-      { id: "side", x: 8, y: 64, color: "red", label: "Port sidelight" },
-      { id: "stern", x: 94, y: 64, color: "white", label: "Sternlight" },
-      { id: "mh-fore", x: 22, y: 25, color: "white", label: "Masthead (fore)"},
-      { id: "mh-aft", x: 66, y: 15, color: "white", label: "Masthead (aft)"},
-    ],
     default: [
       { id: "ar-red1", x: 22, y: 22, color: "red", label: "All-round red (upper)", isAllRound: true },
       { id: "ar-white", x: 22, y: 34, color: "white", label: "All-round white (middle)", isAllRound: true },
@@ -250,7 +243,61 @@ const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, LightConfig[]>> = 
       { id: "stern", x: 94, y: 64, color: "white", label: "Sternlight" },
     ],
   },
+  "ram-underwater": {
+    "Making way": [
+      { id: "ar-red1", x: 22, y: 35, color: "red", label: "All-round red (upper)", isAllRound: true },
+      { id: "ar-red2", x: 22, y: 55, color: "red", label: "All-round red (lower)", isAllRound: true },
+      { id: "ar-white", x: 22, y: 45, color: "white", label: "All-round white (middle)", isAllRound: true },
+      { id: "obstruction", x: 55, y: 64, color: "red", label: "Obstruction exists", isAllRound: true },
+      { id: "obstruction-2", x: 55, y: 74, color: "red", label: "Obstruction exists", isAllRound: true },
+      { id: "side", x: 8, y: 64, color: "red", label: "Port sidelight" },
+      { id: "mh-fore", x: 22, y: 25, color: "white", label: "Masthead (fore)"},
+      { id: "mh-aft", x: 66, y: 15, color: "white", label: "Masthead (aft)"},
+    ],
+    "Not making way": [
+      { id: "ar-red1", x: 22, y: 35, color: "red", label: "All-round red (upper)", isAllRound: true },
+      { id: "ar-red2", x: 22, y: 55, color: "red", label: "All-round red (lower)", isAllRound: true },
+      { id: "ar-white", x: 22, y: 45, color: "white", label: "All-round white (middle)", isAllRound: true },
+      { id: "obstruction", x: 8, y: 64, color: "red", label: "Obstruction exists", isAllRound: true },
+      { id: "obstruction-2", x: 8, y: 74, color: "red", label: "Obstruction exists", isAllRound: true },
+      { id: "mh-fore", x: 22, y: 25, color: "white", label: "Masthead (fore)"},
+      { id: "mh-aft", x: 66, y: 15, color: "white", label: "Masthead (aft)"},
+    ],
+    "At anchor": [
+      { id: "ar-red1", x: 22, y: 35, color: "red", label: "All-round red (upper)", isAllRound: true },
+      { id: "ar-red2", x: 22, y: 55, color: "red", label: "All-round red (lower)", isAllRound: true },
+      { id: "ar-white", x: 22, y: 45, color: "white", label: "All-round white (middle)", isAllRound: true },
+      { id: "obstruction", x: 8, y: 64, color: "red", label: "Obstruction exists", isAllRound: true },
+      { id: "obstruction-2", x: 8, y: 74, color: "red", label: "Obstruction exists", isAllRound: true },
+    ],
+    default: [
+      { id: "ar-red1", x: 22, y: 35, color: "red", label: "All-round red (upper)", isAllRound: true },
+      { id: "ar-white", x: 22, y: 45, color: "white", label: "All-round white (middle)", isAllRound: true },
+      { id: "ar-red2", x: 22, y: 55, color: "red", label: "All-round red (lower)", isAllRound: true },
+      { id: "obstruction", x: 8, y: 64, color: "red", label: "Obstruction exists", isAllRound: true },
+      { id: "obstruction-2", x: 8, y: 74, color: "red", label: "Obstruction exists", isAllRound: true },
+      { id: "mh-fore", x: 22, y: 25, color: "white", label: "Masthead (fore)"},
+      { id: "mh-aft", x: 66, y: 15, color: "white", label: "Masthead (aft)"},
+    ],
+  },
   cbd: {
+    "Under 50m": [
+      { id: "ar-red1", x: 20, y: 35, color: "red", label: "All-round red", isAllRound: true },
+      { id: "ar-red2", x: 20, y: 45, color: "red", label: "All-round red", isAllRound: true },
+      { id: "ar-red3", x: 20, y: 55, color: "red", label: "All-round red", isAllRound: true },
+      { id: "mh", x: 20, y: 25, color: "white", label: "Masthead" },
+      { id: "side", x: 8, y: 64, color: "red", label: "Port sidelight" },
+      { id: "stern", x: 94, y: 64, color: "white", label: "Sternlight" },
+    ],
+    "Over 50m": [
+      { id: "ar-red1", x: 20, y: 35, color: "red", label: "All-round red", isAllRound: true },
+      { id: "ar-red2", x: 20, y: 45, color: "red", label: "All-round red", isAllRound: true },
+      { id: "ar-red3", x: 20, y: 55, color: "red", label: "All-round red", isAllRound: true },
+      { id: "mh", x: 20, y: 25, color: "white", label: "Masthead" },
+      { id: "mh-aft", x: 66, y: 15, color: "white", label: "Masthead (aft)"},
+      { id: "side", x: 8, y: 64, color: "red", label: "Port sidelight" },
+      { id: "stern", x: 94, y: 64, color: "white", label: "Sternlight" },
+    ],
     default: [
       { id: "ar-red1", x: 20, y: 18, color: "red", label: "All-round red", isAllRound: true },
       { id: "ar-red2", x: 20, y: 30, color: "red", label: "All-round red", isAllRound: true },
@@ -261,6 +308,7 @@ const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, LightConfig[]>> = 
     ],
   },
   anchored: {
+    "Under 7m": [],
     "Under 50m": [
       { id: "anchor", x: 22, y: 26, color: "white", label: "Anchor light", isAllRound: true },
     ],
@@ -276,6 +324,18 @@ const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, LightConfig[]>> = 
     default: [{ id: "anchor", x: 22, y: 26, color: "white", label: "Anchor light", isAllRound: true }],
   },
   aground: {
+    "Under 12m": [],
+    "Under 50m": [
+      { id: "ar-red1", x: 22, y: 48, color: "red", label: "All-round red (upper)", isAllRound: true },
+      { id: "ar-red2", x: 22, y: 36, color: "red", label: "All-round red (lower)", isAllRound: true },
+      { id: "anchor", x: 22, y: 24, color: "white", label: "Anchor light", isAllRound: true }, 
+    ],
+    "Over 50m": [
+      { id: "ar-red1", x: 22, y: 48, color: "red", label: "All-round red (upper)", isAllRound: true },
+      { id: "ar-red2", x: 22, y: 36, color: "red", label: "All-round red (lower)", isAllRound: true },
+      { id: "anchor", x: 22, y: 24, color: "white", label: "Anchor (fore)", isAllRound: true },  
+      { id: "anchor-aft", x: 94, y: 64, color: "white", label: "Anchor (aft)", isAllRound: true },  
+    ],
     default: [
       { id: "ar-red1", x: 22, y: 24, color: "red", label: "All-round red (upper)", isAllRound: true },
       { id: "ar-red2", x: 22, y: 36, color: "red", label: "All-round red (lower)", isAllRound: true },
@@ -300,6 +360,17 @@ const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, LightConfig[]>> = 
     ],
   },
   pilot: {
+    "Underway": [
+      { id: "ar-white", x: 22, y: 28, color: "white", label: "All-round white (upper)", isAllRound: true },
+      { id: "ar-red", x: 22, y: 42, color: "red", label: "All-round red (lower)", isAllRound: true },
+      { id: "side", x: 8, y: 64, color: "red", label: "Port sidelight" },
+      { id: "stern", x: 94, y: 64, color: "white", label: "Sternlight" },
+    ],
+    "On anchor": [
+      { id: "ar-white", x: 22, y: 28, color: "white", label: "All-round white (upper)", isAllRound: true },
+      { id: "ar-red", x: 22, y: 42, color: "red", label: "All-round red (lower)", isAllRound: true },
+      { id: "anchor", x: 55, y: 50, color: "white", label: "Anchor light (under 50m)", isAllRound: true },
+    ],
     default: [
       { id: "ar-white", x: 22, y: 28, color: "white", label: "All-round white (upper)", isAllRound: true },
       { id: "ar-red", x: 22, y: 42, color: "red", label: "All-round red (lower)", isAllRound: true },
@@ -441,14 +512,34 @@ export default function VesselLights({
             { ...l, id: "port-side", x: 58, color: "red" as const, label: "Port sidelight" }
           ];
         }
+        else if (l.id.includes("obstruction")) {
+          // Perspective swap: Starboard (Green) on left, Port (Red) on right
+          return [
+            { ...l, id: "stbd-side", x: 45, color: "green" as const, label: "Vessel may pass" },
+            { ...l, id: "port-side", x: 55, color: "red" as const, label: "Obstruction exists" }
+          ];
+        }
+        xPos = 50; 
+      } else if (view === "stern" && l.isAllRound) {
+        if (l.id.includes("obstruction")) {
+          // Perspective swap: Starboard (Green) on left, Port (Red) on right
+          return [
+            { ...l, id: "stbd-side", x: 55, color: "green" as const, label: "Vessel may pass" },
+            { ...l, id: "port-side", x: 45, color: "red" as const, label: "Obstruction exists" }
+          ];
+        }
         xPos = 50; 
       } else if (view === "stern") {
         xPos = 50;
-      } else if (view === "starboard") {
+      }else if (view === "starboard") {
         xPos = 100 - l.x; // Flip X position for mirrored view
         if (l.id.includes("side")) {
           color = "green";
           label = label.replace("Port", "Starboard");
+        }
+        if (l.id.includes("obstruction")) {
+          color = "green";
+          label = label.replace("Obstruction exists", "Vessel may pass");
         }
       }
 
