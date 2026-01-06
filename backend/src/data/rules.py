@@ -759,7 +759,7 @@ The term 'vessels restricted in their ability to manoeuvre' shall include but no
         "title": "Sound Signals in Restricted Visibility",
         "part": "D",
         "section": None,
-        "summary": "Fog signals every 2 min: power-driven making way=1 prolonged, stopped=2 prolonged; sailing/NUC/RAM/fishing/towing=1 prolonged + 2 short. Anchored=bell (gong if 100m+). Pilot=4 short identity.",
+        "summary": "When a vessel is in distress and requires assistance she shall use or exhibit the signals described in Annex IV to these Regulations.",
         "content": """In or near an area of restricted visibility, whether by day or night, the signals prescribed in this Rule shall be used as follows:
 
 (a) A power-driven vessel making way through the water shall sound at intervals of not more than 2 minutes one prolonged blast.
@@ -784,6 +784,77 @@ The term 'vessels restricted in their ability to manoeuvre' shall include but no
 
 (k) A pilot vessel when engaged on pilotage duty may in addition to the signals prescribed in paragraphs (a), (b) or (g) of this Rule sound an identity signal consisting of four short blasts.""",
         "keywords": ["fog signals", "restricted visibility signals", "prolonged blast", "two prolonged blasts", "one prolonged two short", "bell signal", "gong", "anchor signal", "aground signal", "pilot identity"]
+    },
+    "rule_36": {
+        "title": "Signals to Attract Attention",
+        "part": "D",
+        "section": None,
+        "summary": "Permits vessels to use unmistakable light or sound signals or searchlights to attract attention to danger, provided they cannot be confused with navigation aids. Explicitly prohibits the use of high-intensity strobe lights for this purpose.",
+        "content": """If necessary to attract the attention of another vessel any vessel may make light or sound signals that cannot be mistaken for any signal authorised elsewhere in these Rules, or may direct the beam of her searchlight in the direction of the danger, in such a way as not to embarrass any vessel. Any light to attract the attention of another vessel shall be such that it cannot be mistaken for any aid to navigation. For the purpose of this Rule the use of high-intensity intermittent or revolving lights, such as strobe lights, shall be avoided.""",
+        "keywords": [
+            "attract attention",
+            "searchlight",
+            "danger signals",
+            "strobe lights",
+            "navigation aids",
+            "mistaken signals",
+            "intermittent lights"
+        ]
+    },
+    "rule_37": {
+        "title": "Distress Signals",
+        "part": "D",
+        "section": None,
+        "summary": "When a vessel is in distress and requires assistance she shall use or exhibit the signals described in Annex IV to these Regulations.",
+        "content": """When a vessel is in distress and requires assistance she shall use or exhibit the signals described in Annex IV to these Regulations.""",
+        "keywords": [
+            "distress",
+            "assistance",
+            "Annex IV",
+            "emergency",
+            "mayday",
+            "SOS"
+        ]
+    },
+
+    # ==================== PART E - EXEMPTIONS ====================
+    "rule_38": {
+        "title": "Exemptions",
+        "part": "E",
+        "section": None,
+        "summary": "Details specific permanent and temporary exemptions regarding the installation, range, and positioning of lights and sound signal appliances for vessels constructed before the regulations entered into force.",
+        "content": """Any vessel (or class of vessels) provided that she complies with the requirements of the International Regulation for Preventing Collisions and Sea, 1960, the keel of which is laid or which is at a corresponding stage of construction before the entry into force of these Regulations may be exempted from compliance therewith as follows:
+
+(a) The installation of lights with ranges prescribed in Rule 22, until four years after the date of entry into force of these Regulations.
+
+(b) The installation of lights with colour specifications as prescribed in Section 7 of Annex I to these Regulations, until four years after the date of entry into force of these Regulations.
+
+(c) The repositioning of lights as a result of conversion from Imperial to metric units and rounding off measurement figures, permanent exemption.
+
+(d)
+
+(i) The repositioning of masthead lights on vessels of less than 150 m in length, resulting from the prescriptions of section 3 (a) of Annex I to these Regulations, permanent exemption.
+
+(ii) The repositioning of masthead lights on vessels of 150 m or more in length, resulting from the prescriptions of section 3 (a) of Annex I to these Regulations, until nine years after the date of entry into force of these Regulations.
+
+(e) The repositioning of masthead lights resulting from the prescriptions of section 2 (b) of Annex I to these Regulations, until nine years after the date of entry into force of these Regulations.
+
+(f) The repositioning of sidelights resulting from the prescriptions of section 2 (g) and 3 (b) of Annex I to these Regulations, unti ninel years after the date of entry into force of these Regulations.
+
+(g) The requirements for sound signal appliances prescribed in Annex III to these Regulations, until nine years after the date of entry into force of these Regulations.
+
+(h) The repositioning of all-round lights resulting from the prescription of section 9 (b) of Annex I to these Regulations, permanent exemption.""",
+        "keywords": [
+            "exemptions",
+            "compliance",
+            "light repositioning",
+            "sound signal appliances",
+            "grandfather clause",
+            "keel laid",
+            "metric conversion",
+            "masthead lights",
+            "Annex I"
+        ]
     },
 
     # ==================== ANNEXES ====================
