@@ -15,12 +15,14 @@ export type VesselType =
   | "nuc"
   | "ram"
   | "ram-underwater"
+  | "ram-mine-clearance"
   | "cbd"
   | "towing"
   | "pushing"
   | "anchored"
   | "aground"
-  | "pilot";
+  | "pilot"
+  | "seaplane";
 
 export type LengthCategory = "under7m" | "under12m" | "under20m" | "over20m" | "over20m-optional" | "under50m" | "over50m";
 
@@ -56,12 +58,14 @@ export const VESSEL_TYPES: Record<VesselType, string> = {
   nuc: "Vessel not under command",
   ram: "Restricted manueverability",
   "ram-underwater": "Restricted manueverability - underwater operations",
+  "ram-mine-clearance": "Restricted manueverability - mine clearance",
   cbd: "Vessel constrained by her draught",
   towing: "Power-driven vessel towing",
   pushing: "Power-driven vessel pushing ahead",
   anchored: "Vessel at anchor",
   aground: "Vessel aground",
   pilot: "Pilot vessel on duty",
+  seaplane: "Seaplanes"
 };
 
 const SIZE_CONFIG = {
@@ -235,6 +239,11 @@ const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, LightConfig[]>> = 
       { id: "stern", x: 94, y: 74, color: "white", label: "Sternlight" },
       { id: "towing", x: 94, y: 64, color: "yellow", label: "Towing light" },
     ],
+    "Diving operations": [
+      { id: "ar-red1", x: 22, y: 35, color: "red", label: "All-round red (upper)", isAllRound: true },
+      { id: "ar-white", x: 22, y: 45, color: "white", label: "All-round white (middle)", isAllRound: true },
+      { id: "ar-red2", x: 22, y: 55, color: "red", label: "All-round red (lower)", isAllRound: true },
+    ],
     default: [
       { id: "ar-red1", x: 22, y: 22, color: "red", label: "All-round red (upper)", isAllRound: true },
       { id: "ar-white", x: 22, y: 34, color: "white", label: "All-round white (middle)", isAllRound: true },
@@ -277,6 +286,33 @@ const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, LightConfig[]>> = 
       { id: "obstruction", x: 8, y: 64, color: "red", label: "Obstruction exists", isAllRound: true },
       { id: "obstruction-2", x: 8, y: 74, color: "red", label: "Obstruction exists", isAllRound: true },
       { id: "mh-fore", x: 22, y: 25, color: "white", label: "Masthead (fore)"},
+      { id: "mh-aft", x: 66, y: 15, color: "white", label: "Masthead (aft)"},
+    ],
+  },
+  "ram-mine-clearance": {
+    "Underway": [
+      { id: "mh-fore", x: 22, y: 25, color: "white", label: "Masthead (fore)"},
+      { id: "ar-green1", x: 22, y: 35, color: "green", label: "All-round green", isAllRound: true },
+      { id: "ar-green-side-unique", x: 22, y: 45, color: "green", label: "All-round green", isAllRound: true },
+      { id: "ar-green-side-unique", x: 22, y: 45, color: "green", label: "All-round green", isAllRound: true },
+      { id: "side", x: 8, y: 64, color: "red", label: "Port sidelight" },
+      { id: "stern", x: 94, y: 64, color: "white", label: "Sternlight" },
+      { id: "mh-aft", x: 66, y: 15, color: "white", label: "Masthead (aft)"},
+    ],
+    "At anchor": [
+      { id: "anchor-fore", x: 22, y: 26, color: "white", label: "Anchor (fore)", isAllRound: true },
+      { id: "anchor-aft", x: 94, y: 64, color: "white", label: "Anchor (aft)", isAllRound: true },
+      { id: "ar-green1", x: 22, y: 35, color: "green", label: "All-round green", isAllRound: true },
+      { id: "ar-green-side-unique", x: 22, y: 45, color: "green", label: "All-round green", isAllRound: true },
+      { id: "ar-green-side-unique", x: 22, y: 45, color: "green", label: "All-round green", isAllRound: true },
+    ],
+    default: [
+      { id: "mh-fore", x: 22, y: 25, color: "white", label: "Masthead (fore)"},
+      { id: "ar-green1", x: 22, y: 35, color: "green", label: "All-round green", isAllRound: true },
+      { id: "ar-green-side-unique", x: 22, y: 45, color: "green", label: "All-round green", isAllRound: true },
+      { id: "ar-green-side-unique", x: 22, y: 45, color: "green", label: "All-round green", isAllRound: true },
+      { id: "side", x: 8, y: 64, color: "red", label: "Port sidelight" },
+      { id: "stern", x: 94, y: 64, color: "white", label: "Sternlight" },
       { id: "mh-aft", x: 66, y: 15, color: "white", label: "Masthead (aft)"},
     ],
   },
@@ -343,20 +379,82 @@ const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, LightConfig[]>> = 
     ],
   },
   towing: {
+    "Tow under 200m": [
+      { id: "mh1", x: 23, y: 35, color: "white", label: "Masthead (upper)" },
+      { id: "mh2", x: 23, y: 45, color: "white", label: "Masthead (lower)" },
+      { id: "side-tow", x: 85, y: 70, color: "red", label: "Port sidelight of towed" },
+      { id: "side", x: 18, y: 72, color: "red", label: "Port sidelight" },
+      { id: "towing", x: 6, y: 62, color: "yellow", label: "Towing light" },
+      { id: "stern", x: 6, y: 72, color: "white", label: "Sternlight" },
+      { id: "stern", x: 6, y: 72, color: "white", label: "Sternlight of towed" },
+    ],
+    "Tow over 200m": [
+      { id: "mh1", x: 23, y: 25, color: "white", label: "Masthead (upper)" },
+      { id: "mh2", x: 23, y: 35, color: "white", label: "Masthead (middle)" },
+      { id: "mh3", x: 23, y: 45, color: "white", label: "Masthead (lower)" },
+      { id: "side-tow", x: 85, y: 70, color: "red", label: "Port sidelight of towed" },
+      { id: "side", x: 18, y: 72, color: "red", label: "Port sidelight" },
+      { id: "towing", x: 6, y: 62, color: "yellow", label: "Towing light" },
+      { id: "stern", x: 6, y: 72, color: "white", label: "Sternlight" },
+      { id: "stern", x: 6, y: 72, color: "white", label: "Sternlight of towed" },
+    ],
+    "Partly submerged under 200m": [
+      { id: "mh1", x: 23, y: 35, color: "white", label: "Masthead (upper)" },
+      { id: "mh2", x: 23, y: 45, color: "white", label: "Masthead (lower)" },
+      { id: "submerged-fore", x: 63, y: 67, color: "white", label: "Submerged vessel (fore)", isAllRound: true },  
+      { id: "submerged-aft", x: 96, y: 67, color: "white", label: "Submerged vessel (aft)", isAllRound: true }, 
+      { id: "side", x: 18, y: 72, color: "red", label: "Port sidelight" },
+      { id: "towing", x: 6, y: 62, color: "yellow", label: "Towing light" },
+      { id: "stern", x: 6, y: 72, color: "white", label: "Sternlight" },
+    ],
+    "Partly submerged over 200m": [
+      { id: "mh1", x: 23, y: 25, color: "white", label: "Masthead (upper)" },
+      { id: "mh2", x: 23, y: 35, color: "white", label: "Masthead (middle)" },
+      { id: "mh3", x: 23, y: 45, color: "white", label: "Masthead (lower)" },
+      { id: "middle-tow", x: 78, y: 67, color: "white", label: "Middle white light of towed vessel (3x)", isAllRound: true },
+      { id: "submerged-fore", x: 63, y: 67, color: "white", label: "Submerged vessel (fore)", isAllRound: true },  
+      { id: "submerged-aft", x: 96, y: 67, color: "white", label: "Submerged vessel (aft)", isAllRound: true }, 
+      { id: "side", x: 18, y: 72, color: "red", label: "Port sidelight" },
+      { id: "towing", x: 6, y: 62, color: "yellow", label: "Towing light" },
+      { id: "stern", x: 6, y: 72, color: "white", label: "Sternlight" },
+    ],
     default: [
-      { id: "mh1", x: 22, y: 22, color: "white", label: "Masthead (upper)" },
-      { id: "mh2", x: 22, y: 34, color: "white", label: "Masthead (lower)" },
-      { id: "side", x: 8, y: 64, color: "red", label: "Port sidelight" },
-      { id: "towing", x: 94, y: 56, color: "yellow", label: "Towing light" },
-      { id: "stern", x: 94, y: 66, color: "white", label: "Sternlight" },
+      { id: "mh1", x: 23, y: 35, color: "white", label: "Masthead (upper)" },
+      { id: "mh2", x: 23, y: 45, color: "white", label: "Masthead (lower)" },
+      { id: "side", x: 85, y: 70, color: "red", label: "Port sidelight of towed" },
+      { id: "side-tow", x: 18, y: 72, color: "red", label: "Port sidelight" },
+      { id: "towing", x: 6, y: 62, color: "yellow", label: "Towing light" },
+      { id: "stern", x: 6, y: 72, color: "white", label: "Sternlight" },
+      { id: "stern", x: 6, y: 72, color: "white", label: "Sternlight of towed" },
     ],
   },
   pushing: {
+    "Single vessel": [
+      { id: "mh1", x: 77, y: 35, color: "white", label: "Masthead (upper)" },
+      { id: "mh2", x: 77, y: 45, color: "white", label: "Masthead (lower)" },
+      { id: "side", x: 70, y: 70, color: "red", label: "Port sidelight" },
+      { id: "side-pushed-obj", x: 3, y: 80, color: "red", label: "Port sidelight of pushed vessel" },
+      { id: "stern", x: 95, y: 70, color: "white", label: "Sternlight" },
+    ],
+    "Group of vessels": [
+      { id: "mh1", x: 77, y: 35, color: "white", label: "Masthead (upper)" },
+      { id: "mh2", x: 77, y: 45, color: "white", label: "Masthead (lower)" },
+      { id: "side", x: 70, y: 70, color: "red", label: "Port sidelight" },
+      { id: "side-pushed-obj", x: 3, y: 80, color: "red", label: "Port sidelight of pushed vessel" },
+      { id: "stern", x: 95, y: 70, color: "white", label: "Sternlight" },
+    ],
+    "Rigidly connected": [
+      { id: "mh1", x: 77, y: 35, color: "white", label: "Masthead" },
+      { id: "mh2", x: 10, y: 60, color: "white", label: "Masthead" },
+      { id: "side", x: 70, y: 70, color: "red", label: "Port sidelight" },
+      { id: "stern", x: 95, y: 70, color: "white", label: "Sternlight" },
+    ],
     default: [
-      { id: "mh1", x: 22, y: 22, color: "white", label: "Masthead (upper)" },
-      { id: "mh2", x: 22, y: 34, color: "white", label: "Masthead (lower)" },
-      { id: "side", x: 8, y: 64, color: "red", label: "Port sidelight" },
-      { id: "stern", x: 94, y: 64, color: "white", label: "Sternlight" },
+      { id: "mh1", x: 77, y: 35, color: "white", label: "Masthead (upper)" },
+      { id: "mh2", x: 77, y: 45, color: "white", label: "Masthead (lower)" },
+      { id: "side", x: 70, y: 70, color: "red", label: "Port sidelight" },
+      { id: "side-pushed-obj", x: 3, y: 80, color: "red", label: "Port sidelight of pushed vessel" },
+      { id: "stern", x: 95, y: 70, color: "white", label: "Sternlight" },
     ],
   },
   pilot: {
@@ -378,6 +476,24 @@ const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, LightConfig[]>> = 
       { id: "stern", x: 94, y: 64, color: "white", label: "Sternlight" },
     ],
   },
+  seaplane: {
+    "A seaplane": [
+      { id: "mh", x: 83, y: 33, color: "white", label: "White light" },
+      { id: "side", x: 30, y: 50, color: "red", label: "Port sidelight" },
+      { id: "stern", x: 85, y: 15, color: "white", label: "Sternlight" },
+    ],
+    "A WIG craft": [
+      { id: "ar-red", x: 50, y: 42, color: "red", label: "All-round blinking red light", isAllRound: true },
+      { id: "mh", x: 83, y: 33, color: "white", label: "White light" },
+      { id: "side", x: 30, y: 50, color: "red", label: "Port sidelight" },
+      { id: "stern", x: 85, y: 32, color: "white", label: "Sternlight" },
+    ],
+    default: [
+      { id: "mh", x: 83, y: 33, color: "white", label: "White light" },
+      { id: "side", x: 30, y: 50, color: "red", label: "Port sidelight" },
+      { id: "stern", x: 85, y: 15, color: "white", label: "Sternlight" },
+    ],
+  },
 };
 
 /**
@@ -392,14 +508,6 @@ const CargoSilhouette = ({ width, height }: { width: number; height: number }) =
     <rect x={width * 0.2} y={height * 0.3} width={width * 0.012} height={height * 0.44} fill="#1e293b" />
     {/* Rear Mast (Pillar) */}
     <rect x={width * 0.64} y={height * 0.26} width={width * 0.01} height={height * 0.24} fill="#1e293b" />
-  </g>
-);
-
-const SailSilhouette = ({ width, height }: { width: number; height: number }) => (
-  <g>
-    <path d={`M ${width * 0.25} ${height * 0.78} L ${width * 0.3} ${height * 0.9} L ${width * 0.7} ${height * 0.9} L ${width * 0.75} ${height * 0.78} Z`} fill="#1e293b" />
-    <rect x={width * 0.42} y={height * 0.3} width={width * 0.012} height={height * 0.48} fill="#1e293b" />
-    <path d={`M ${width * 0.43} ${height * 0.32} L ${width * 0.43} ${height * 0.74} L ${width * 0.6} ${height * 0.74} Z`} fill="#334155" opacity="0.4" />
   </g>
 );
 
@@ -421,6 +529,14 @@ const SternSilhouette = ({ width, height }: { width: number; height: number }) =
   </g>
 );
 
+const SailSilhouette = ({ width, height }: { width: number; height: number }) => (
+  <g>
+    <path d={`M ${width * 0.25} ${height * 0.78} L ${width * 0.3} ${height * 0.9} L ${width * 0.7} ${height * 0.9} L ${width * 0.75} ${height * 0.78} Z`} fill="#1e293b" />
+    <rect x={width * 0.42} y={height * 0.3} width={width * 0.012} height={height * 0.48} fill="#1e293b" />
+    <path d={`M ${width * 0.43} ${height * 0.32} L ${width * 0.43} ${height * 0.74} L ${width * 0.6} ${height * 0.74} Z`} fill="#334155" opacity="0.4" />
+  </g>
+);
+
 const SailAheadSilhouette = ({ width, height }: { width: number; height: number }) => (
   <g>
     <path d={`M ${width * 0.42} ${height * 0.75} L ${width * 0.58} ${height * 0.75} L ${width * 0.5} ${height * 0.9} Z`} fill="#1e293b" />
@@ -434,6 +550,151 @@ const SailSternSilhouette = ({ width, height }: { width: number; height: number 
     <path d={`M ${width * 0.4} ${height * 0.72} L ${width * 0.6} ${height * 0.72} L ${width * 0.55} ${height * 0.88} L ${width * 0.45} ${height * 0.88} Z`} fill="#1e293b" />
     {/* Central Mast */}
     <rect x={width * 0.495} y={height * 0.3} width={width * 0.01} height={height * 0.5} fill="#1e293b" />
+  </g>
+);
+
+const SeaplaneSilhouette = ({ width, height }: { width: number; height: number }) => (
+  <g>
+    {/* Float (Pontoon) */}
+    <path d={`M ${width * 0.2} ${height * 0.82} L ${width * 0.8} ${height * 0.82} L ${width * 0.75} ${height * 0.92} L ${width * 0.25} ${height * 0.9} Z`} fill="#1e293b" />
+    
+    {/* Struts connecting float to body */}
+    <path d={`M ${width * 0.35} ${height * 0.82} L ${width * 0.4} ${height * 0.65} L ${width * 0.42} ${height * 0.65} L ${width * 0.37} ${height * 0.82} Z`} fill="#1e293b" />
+    <path d={`M ${width * 0.6} ${height * 0.82} L ${width * 0.55} ${height * 0.65} L ${width * 0.57} ${height * 0.65} L ${width * 0.62} ${height * 0.82} Z`} fill="#1e293b" />
+
+    {/* Fuselage (Body) */}
+    <path d={`M ${width * 0.15} ${height * 0.55} Q ${width * 0.5} ${height * 0.45} ${width * 0.9} ${height * 0.4} L ${width * 0.92} ${height * 0.25} L ${width * 0.8} ${height * 0.42} L ${width * 0.15} ${height * 0.65} Z`} fill="#334155" />
+    
+    {/* Wing (Side Profile) */}
+    <path d={`M ${width * 0.3} ${height * 0.5} L ${width * 0.6} ${height * 0.48} L ${width * 0.6} ${height * 0.52} L ${width * 0.3} ${height * 0.54} Z`} fill="#1e293b" />
+    
+    {/* Propeller/Nose */}
+    <rect x={width * 0.12} y={height * 0.52} width={width * 0.04} height={height * 0.15} fill="#1e293b" rx={2} />
+  </g>
+);
+
+const SeaplaneAheadSilhouette = ({ width, height }: { width: number; height: number }) => (
+  <g>
+    {/* Main Wing */}
+    <rect x={width * 0.1} y={height * 0.35} width={width * 0.8} height={height * 0.06} fill="#1e293b" rx={2} />
+    
+    {/* Fuselage Center */}
+    <rect x={width * 0.45} y={height * 0.4} width={width * 0.1} height={height * 0.25} fill="#334155" rx={5} />
+    
+    {/* Floats (Pontoons) */}
+    <rect x={width * 0.25} y={height * 0.75} width={width * 0.12} height={height * 0.15} fill="#1e293b" rx={3} />
+    <rect x={width * 0.63} y={height * 0.75} width={width * 0.12} height={height * 0.15} fill="#1e293b" rx={3} />
+    
+    {/* Struts */}
+    <path d={`M ${width * 0.31} ${height * 0.75} L ${width * 0.45} ${height * 0.45} L ${width * 0.46} ${height * 0.45} L ${width * 0.32} ${height * 0.75} Z`} fill="#1e293b" opacity="0.8" />
+    <path d={`M ${width * 0.69} ${height * 0.75} L ${width * 0.55} ${height * 0.45} L ${width * 0.54} ${height * 0.45} L ${width * 0.68} ${height * 0.75} Z`} fill="#1e293b" opacity="0.8" />
+    
+    {/* Propeller Arc (Hint) */}
+    <circle cx={width * 0.5} cy={height * 0.42} r={width * 0.03} fill="#1e293b" />
+  </g>
+);
+
+const SeaplaneSternSilhouette = ({ width, height }: { width: number; height: number }) => (
+  <g>
+    {/* Main Wing */}
+    <rect x={width * 0.1} y={height * 0.35} width={width * 0.8} height={height * 0.06} fill="#1e293b" rx={2} />
+    
+    {/* Horizontal Stabilizer (Tail wing) - sits higher/further back */}
+    <rect x={width * 0.35} y={height * 0.22} width={width * 0.3} height={height * 0.04} fill="#1e293b" rx={1} />
+    
+    {/* Vertical Stabilizer (Tail fin) */}
+    <rect x={width * 0.48} y={height * 0.15} width={width * 0.04} height={height * 0.25} fill="#334155" />
+    
+    {/* Fuselage Center */}
+    <rect x={width * 0.46} y={height * 0.4} width={width * 0.08} height={height * 0.2} fill="#334155" rx={5} />
+    
+    {/* Floats (Pontoons) - Slightly narrower from back */}
+    <rect x={width * 0.26} y={height * 0.75} width={width * 0.1} height={height * 0.15} fill="#1e293b" rx={3} />
+    <rect x={width * 0.64} y={height * 0.75} width={width * 0.1} height={height * 0.15} fill="#1e293b" rx={3} />
+    
+    {/* Struts */}
+    <path d={`M ${width * 0.31} ${height * 0.75} L ${width * 0.46} ${height * 0.42} Z`} stroke="#1e293b" strokeWidth={2} />
+    <path d={`M ${width * 0.69} ${height * 0.75} L ${width * 0.54} ${height * 0.42} Z`} stroke="#1e293b" strokeWidth={2} />
+  </g>
+);
+
+const PushingSilhouette = ({ width, height }: { width: number; height: number }) => (
+  <g>
+    {/* Barge (Front/Left) - Pushed unit leading left */}
+    <path d={`M ${width * 0.02} ${height * 0.76} L ${width * 0.05} ${height * 0.88} L ${width * 0.6} ${height * 0.88} L ${width * 0.6} ${height * 0.76} Z`} fill="#1e293b" />
+    <rect x={width * 0.05} y={height * 0.72} width={width * 0.5} height={height * 0.08} fill="#334155" opacity="0.8" rx={1} />
+
+    {/* Tug (Rear/Right) - Pushing from behind */}
+    <path d={`M ${width * 0.62} ${height * 0.72} L ${width * 0.62} ${height * 0.88} L ${width * 0.95} ${height * 0.88} L ${width * 0.95} ${height * 0.72} Z`} fill="#1e293b" />
+    <rect x={width * 0.70} y={height * 0.55} width={width * 0.15} height={height * 0.18} fill="#334155" rx={2} />
+    {/* Tug Mast */}
+    <rect x={width * 0.765} y={height * 0.4} width={width * 0.015} height={height * 0.32} fill="#1e293b" />
+  </g>
+);
+
+const PushingAheadSilhouette = ({ width, height }: { width: number; height: number }) => (
+  <g>
+    {/* Wide Barge Front */}
+    <path d={`M ${width * 0.2} ${height * 0.75} L ${width * 0.8} ${height * 0.75} L ${width * 0.75} ${height * 0.9} L ${width * 0.25} ${height * 0.9} Z`} fill="#1e293b" />
+    <rect x={width * 0.25} y={height * 0.65} width={width * 0.5} height={height * 0.1} fill="#334155" opacity="0.6" />
+    
+    {/* Tug Wheelhouse visible above barge */}
+    <rect x={width * 0.42} y={height * 0.45} width={width * 0.16} height={height * 0.2} fill="#334155" rx={2} />
+    <rect x={width * 0.495} y={height * 0.3} width={width * 0.01} height={height * 0.35} fill="#1e293b" />
+  </g>
+);
+
+const PushingSternSilhouette = ({ width, height }: { width: number; height: number }) => (
+  <g>
+    {/* Tug Rear (Prominent) */}
+    <path d={`M ${width * 0.35} ${height * 0.75} L ${width * 0.65} ${height * 0.75} L ${width * 0.6} ${height * 0.9} L ${width * 0.4} ${height * 0.9} Z`} fill="#1e293b" />
+    <rect x={width * 0.42} y={height * 0.55} width={width * 0.16} height={height * 0.2} fill="#334155" rx={2} />
+    
+    {/* Barge visible slightly on sides if wide */}
+    <path d={`M ${width * 0.2} ${height * 0.8} L ${width * 0.34} ${height * 0.8} L ${width * 0.34} ${height * 0.85} L ${width * 0.25} ${height * 0.85} Z`} fill="#1e293b" opacity="0.6" />
+    <path d={`M ${width * 0.66} ${height * 0.8} L ${width * 0.8} ${height * 0.8} L ${width * 0.75} ${height * 0.85} L ${width * 0.66} ${height * 0.85} Z`} fill="#1e293b" opacity="0.6" />
+
+    {/* Mast */}
+    <rect x={width * 0.495} y={height * 0.35} width={width * 0.01} height={height * 0.4} fill="#1e293b" />
+  </g>
+);
+
+const TowingSilhouette = ({ width, height }: { width: number; height: number }) => (
+  <g>
+    {/* Tug (Left/Front) - Leading left */}
+    <path d={`M ${width * 0.05} ${height * 0.75} L ${width * 0.1} ${height * 0.9} L ${width * 0.38} ${height * 0.9} L ${width * 0.38} ${height * 0.75} Z`} fill="#1e293b" />
+    <rect x={width * 0.18} y={height * 0.6} width={width * 0.12} height={height * 0.15} fill="#334155" rx={2} />
+    <rect x={width * 0.23} y={height * 0.45} width={width * 0.01} height={height * 0.3} fill="#1e293b" />
+
+    {/* Tow Line */}
+    <line x1={width * 0.38} y1={height * 0.8} x2={width * 0.62} y2={height * 0.75} stroke="#cbd5e1" strokeWidth={1.5} strokeDasharray="4 2" />
+
+    {/* Towed Vessel (Right/Rear) - Following */}
+    <path d={`M ${width * 0.62} ${height * 0.7} L ${width * 0.65} ${height * 0.88} L ${width * 0.98} ${height * 0.88} L ${width * 0.98} ${height * 0.7} Z`} fill="#1e293b" />
+    <rect x={width * 0.85} y={height * 0.55} width={width * 0.1} height={height * 0.15} fill="#334155" />
+    <rect x={width * 0.89} y={height * 0.35} width={width * 0.01} height={height * 0.35} fill="#1e293b" />
+  </g>
+);
+
+const TowingAheadSilhouette = ({ width, height }: { width: number; height: number }) => (
+  <g>
+    {/* Tug (Front/Prominent) */}
+    <path d={`M ${width * 0.35} ${height * 0.75} L ${width * 0.65} ${height * 0.75} L ${width * 0.6} ${height * 0.9} L ${width * 0.4} ${height * 0.9} Z`} fill="#1e293b" />
+    <rect x={width * 0.42} y={height * 0.55} width={width * 0.16} height={height * 0.2} fill="#334155" rx={2} />
+    <rect x={width * 0.495} y={height * 0.35} width={width * 0.01} height={height * 0.4} fill="#1e293b" />
+
+    {/* Towed Vessel (Behind/Obscured but visible on sides) */}
+    <path d={`M ${width * 0.2} ${height * 0.65} L ${width * 0.3} ${height * 0.65} L ${width * 0.3} ${height * 0.8} L ${width * 0.25} ${height * 0.8} Z`} fill="#1e293b" opacity="0.5" />
+    <path d={`M ${width * 0.7} ${height * 0.65} L ${width * 0.8} ${height * 0.65} L ${width * 0.75} ${height * 0.8} L ${width * 0.7} ${height * 0.8} Z`} fill="#1e293b" opacity="0.5" />
+  </g>
+);
+
+const TowingSternSilhouette = ({ width, height }: { width: number; height: number }) => (
+  <g>
+    {/* Towed Vessel (Front/Prominent in stern view) */}
+    <path d={`M ${width * 0.3} ${height * 0.7} L ${width * 0.7} ${height * 0.7} L ${width * 0.65} ${height * 0.9} L ${width * 0.35} ${height * 0.9} Z`} fill="#1e293b" />
+    <rect x={width * 0.4} y={height * 0.5} width={width * 0.2} height={height * 0.2} fill="#334155" />
+    <rect x={width * 0.495} y={height * 0.3} width={width * 0.01} height={height * 0.4} fill="#1e293b" />
   </g>
 );
 
@@ -505,27 +766,66 @@ export default function VesselLights({
       let label = l.label;
 
       if (view === "ahead") {
-        if (l.id.includes("side")) {
+        
+        
+        if (l.id.includes("green-side-unique")) {
+          // Perspective swap: Starboard (Green) on left, Port (Red) on right
+          return [
+            { ...l, id: "stbd-side", x: 45, color: "green" as const, label: "Starboard sidelight" },
+            { ...l, id: "port-side", x: 55, color: "green" as const, label: "Port sidelight" }
+          ];
+        } else if (l.id.includes("side-tow")) {
+          // Perspective swap: Starboard (Green) on left, Port (Red) on right
+          return [
+            { ...l, id: "stbd-side", x: 22, color: "green" as const, label: "Starboard sidelight of towed vessel" },
+            { ...l, id: "port-side", x: 78, color: "red" as const, label: "Port sidelight of towed vessel" }
+          ];
+        } else if (l.id.includes("side-pushed-obj")) {
+          // Perspective swap: Starboard (Green) on left, Port (Red) on right
+          return [
+            { ...l, id: "stbd-side", x: 20, color: "green" as const, label: "Starboard side of pushed vessel" },
+            { ...l, id: "port-side", x: 80, color: "red" as const, label: "Port side of pushed vessel" }
+          ];
+        } else if (l.id.includes("side")) {
           // Perspective swap: Starboard (Green) on left, Port (Red) on right
           return [
             { ...l, id: "stbd-side", x: 42, color: "green" as const, label: "Starboard sidelight" },
             { ...l, id: "port-side", x: 58, color: "red" as const, label: "Port sidelight" }
           ];
-        }
-        else if (l.id.includes("obstruction")) {
+        } else if (l.id.includes("obstruction")) {
           // Perspective swap: Starboard (Green) on left, Port (Red) on right
           return [
             { ...l, id: "stbd-side", x: 45, color: "green" as const, label: "Vessel may pass" },
             { ...l, id: "port-side", x: 55, color: "red" as const, label: "Obstruction exists" }
           ];
+        } else if (l.id.includes("middle-tow")) {
+          return [
+            { ...l, id: "stbd-tow-side", x: 45, color: "white" as const, label: "Middle towing light (starboard)" },
+            { ...l, id: "middle-tow-side", x: 50, color: "white" as const, label: "Middle towing light (middle)" },
+            { ...l, id: "port-tow-side", x: 55, color: "white" as const, label: "Middle towing light (port)" }
+          ];
         }
         xPos = 50; 
+        
+
       } else if (view === "stern" && l.isAllRound) {
         if (l.id.includes("obstruction")) {
           // Perspective swap: Starboard (Green) on left, Port (Red) on right
           return [
             { ...l, id: "stbd-side", x: 55, color: "green" as const, label: "Vessel may pass" },
             { ...l, id: "port-side", x: 45, color: "red" as const, label: "Obstruction exists" }
+          ];
+        } else if (l.id.includes("green-side-unique")) {
+          // Perspective swap: Starboard (Green) on left, Port (Red) on right
+          return [
+            { ...l, id: "stbd-side", x: 45, color: "green" as const, label: "Starboard sidelight" },
+            { ...l, id: "port-side", x: 55, color: "green" as const, label: "Port sidelight" }
+          ];
+        }  else if (l.id.includes("middle-tow")) {
+          return [
+            { ...l, id: "port-tow-side", x: 45, color: "white" as const, label: "Middle towing light (port)" },
+            { ...l, id: "middle-tow-side", x: 50, color: "white" as const, label: "Middle towing light (middle)" },
+            { ...l, id: "stbd-tow-side", x: 55, color: "white" as const, label: "Middle towing light (starboard)" }
           ];
         }
         xPos = 50; 
@@ -555,7 +855,7 @@ export default function VesselLights({
     setHoveredLights(clustered);
   };
 
-  return (
+return (
     <div className="inline-flex flex-col items-center gap-3 relative">
       <div className="relative rounded-lg overflow-hidden bg-slate-900 border border-slate-800 shadow-xl">
         <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
@@ -563,13 +863,44 @@ export default function VesselLights({
           
           <g style={{ transform: view === "starboard" ? "scaleX(-1)" : undefined, transformOrigin: "center" }}>
             {view === "ahead" ? (
-              type === "sailing" ? <SailAheadSilhouette width={width} height={height} /> : <AheadSilhouette width={width} height={height} />
+              // AHEAD VIEW
+              type === "sailing" ? (
+                <SailAheadSilhouette width={width} height={height} />
+              ) : type === "seaplane" ? (
+                <SeaplaneAheadSilhouette width={width} height={height} />
+              ) : type === "pushing" ? (
+                <PushingAheadSilhouette width={width} height={height} />
+              ) : type === "towing" ? (
+                <TowingAheadSilhouette width={width} height={height} />
+              ) : (
+                <AheadSilhouette width={width} height={height} />
+              )
             ) : view === "stern" ? (
-              type === "sailing" ? <SailSternSilhouette width={width} height={height} /> : <SternSilhouette width={width} height={height} />
-            ) : type === "sailing" ? (
-              <SailSilhouette width={width} height={height} />
+              // STERN VIEW
+              type === "sailing" ? (
+                <SailSternSilhouette width={width} height={height} />
+              ) : type === "seaplane" ? (
+                <SeaplaneSternSilhouette width={width} height={height} />
+              ) : type === "pushing" ? (
+                <PushingSternSilhouette width={width} height={height} />
+              ) : type === "towing" ? (
+                <TowingSternSilhouette width={width} height={height} />
+              ) : (
+                <SternSilhouette width={width} height={height} />
+              )
             ) : (
-              <CargoSilhouette width={width} height={height} />
+              // SIDE VIEW (Port/Starboard)
+              type === "sailing" ? (
+                <SailSilhouette width={width} height={height} />
+              ) : type === "seaplane" ? (
+                <SeaplaneSilhouette width={width} height={height} />
+              ) : type === "pushing" ? (
+                <PushingSilhouette width={width} height={height} />
+              ) : type === "towing" ? (
+                <TowingSilhouette width={width} height={height} />
+              ) : (
+                <CargoSilhouette width={width} height={height} />
+              )
             )}
           </g>
 
