@@ -102,7 +102,7 @@ Analyze the query in the context of the conversation and return the relevant rul
 VISUAL_INSTRUCTIONS = """
 ## Visual Illustrations - IMPORTANT
 You MUST include visual diagrams when answering questions about:
-- What lights a vessel displays (use light-arcs visuals)
+- What lights a vessel displays (use vessel-lights visuals)
 - What day shapes a vessel shows (use day-shapes visuals)
 - What sound signals a vessel makes (use sound-signal visuals)
 - Morse/letter signals (use morse-signal visuals)
@@ -120,7 +120,7 @@ Insert visuals inline using this format: [[VISUAL:catalog_id]]
 
 Example - When asked "What lights does a sailing vessel display?":
 "A sailing vessel underway at night displays sidelights and a sternlight:
-[[VISUAL:light-arcs:sailing-underway]]
+[[VISUAL:vessel-lights:sailing-underway]]
 The red port light is visible from..."
 
 Example - When asked "What is the fog signal for a vessel not under command?":

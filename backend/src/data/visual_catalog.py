@@ -244,38 +244,61 @@ VISUAL_CATALOG: dict[str, dict] = {
     "sound-signal:power-driven-making-way": {
         "type": "sound-signal",
         "data": {"config": "power-driven-making-way"},
-        "caption": "Power-driven vessel making way - one prolonged blast",
-        "use-when": "",
-        "rule": ""
+        "caption": "Power-driven vessel making way through water must sound one prolonged blast at intervals of not more than 2 minutes",
+        "use-when": "User asks to see or hear how would power driven vessel making way in low visibility conditions signal sound like.",
+        "rule": "Rule 35"
     },
-    "sound-signal:power-driven-stopped": {
+    "sound-signal:power-driven-underway-not-making-way": {
         "type": "sound-signal",
         "data": {"config": "power-driven-underway-not-making-way"},
-        "caption": "Power-driven vessel stopped - two prolonged blasts",
-        "use-when": "",
-        "rule": ""
+        "caption": "Power-driven vessel underway but stopped and making no way through the water must sound at intervals of not more than 2 minutes two prolonged blasts in succession with an interval of about 2 seconds between them.",
+        "use-when": "User asks to see or hear how would power driven vessel not making way in low visibility conditions signal sound like.",
+        "rule": "Rule 35"
     },
     "sound-signal:nuc-ram-cbd-sailing-fishing": {
         "type": "sound-signal",
         "data": {"config": "nuc-ram-cbd-sailing-fishing"},
-        "caption": "NUC/RAM/CBD/Sailing/Fishing - one prolonged, two short",
-        "use-when": "",
-        "rule": ""
+        "caption": "Vessels not under command, with restricted maneuverability, constrained by draft, sailing vessel, fishing vessel, or vessel towing/pushing must sound at intervals of not more than 2 minutes three blasts in succession, namely one prolonged followed by two short blasts.",
+        "use-when": "User asks to see or hear how would vessels not under command, with restricted maneuverability, constrained by draft, sailing vessel, fishing vessel, or vessel towing/pushing signal sound like in low visibility conditions.",
+        "rule": "Rule 35"
     },
+     "sound-signal:fishing-ram-anchor": {
+        "type": "sound-signal",
+        "data": {"config": "fishing-anchor"},
+        "caption": "Vessels with restricted maneuverability and fishing vessels at anchor shall sound one prolonged followed by two short blasts.",
+        "use-when": "User asks to see or hear how would vessels with restricted maneuverability and fishing vessels at anchor signal sound like in low visibility conditions.",
+        "rule": "Rule 35"
+    },   
     "sound-signal:vessel-towed": {
         "type": "sound-signal",
         "data": {"config": "vessel-towed"},
-        "caption": "Vessel being towed - one prolonged, three short",
-        "use-when": "",
-        "rule": ""
+        "caption": "Vessel being towed if manned must at intervals of not more than 2 minutes sound four blasts in succession, namely one prolonged followed by three short blasts. When practicable, this signal shall be made immediately after the signal made by the towing vessel.",
+        "use-when": "User asks to see or hear how would vessels being towed if manned signal sound like in low visibility conditions.",
+        "rule": "Rule 35"
     },
     "sound-signal:pilot-vessel": {
         "type": "sound-signal",
         "data": {"config": "pilot-vessel"},
-        "caption": "Pilot vessel identity signal",
-        "use-when": "",
-        "rule": ""
+        "caption": "Besides usual signals for making way, not making way and anchor, pilot vessel on duty (identity signal)",
+        "use-when": "User asks to see or hear how would pilot signal sound like in low visibility conditions besides usual signals for making way, not making way and anchor.",
+        "rule": "Rule 35"
     },
+    "sound-signal:anchored": {
+        "type": "sound-signal",
+        "data": {"config": "anchored"},
+        "caption": "Vessel at anchor in intervals of not more then 1 minute do rapid ringing of bell for 5 seconds (if longer then 100m this will be followed by 5 seconds of gong), followed by one short blast, prolonged blast, and one short blast.",
+        "use-when": "User asks to see or hear how would vessel at anchor signal sound like in low visibility conditions besides usual signals for making way, not making way and anchor.",
+        "rule": "Rule 35"
+    },
+    "sound-signal:aground": {
+        "type": "sound-signal",
+        "data": {"config": "aground"},
+        "caption": "Vessel aground must give bell signal, if required - gong as well. In addition - give 3 separate and distinct strokes on the bell before and after the rapid ringing of the bell.",
+        "use-when": "User asks to see or hear how would aground vessel signal sound like in low visibility conditions besides usual signals for making way, not making way and anchor.",
+        "rule": "Rule 35"
+    },
+
+    ## TODO next
     "sound-signal:altering-to-starboard": {
         "type": "sound-signal",
         "data": {"config": "altering-to-starboard"},
@@ -433,13 +456,15 @@ def get_available_visual_ids() -> list[str]:
     return list(VISUAL_CATALOG.keys())
 
 
-def generate_catalog_reference() -> str:
+def generate_catalog_reference(rules: list[str]) -> str:
     """Generate a compact catalog reference for the system prompt.
 
     Groups visuals by type with their IDs and captions for LLM context.
     """
     lines = []
     current_type = None
+
+    #TODO: potentially implement filtering using rules to avoid confusion
 
     for visual_id, config in VISUAL_CATALOG.items():
         vtype = config["type"]

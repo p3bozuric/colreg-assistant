@@ -103,7 +103,7 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
             return StreamingResponse(fallback_generator(), media_type="text/event-stream")
 
         # Build messages for LLM with visual catalog
-        visual_catalog = generate_catalog_reference()
+        visual_catalog = generate_catalog_reference(matched_rules)
         visual_instructions = VISUAL_INSTRUCTIONS.format(visual_catalog=visual_catalog)
         system_content = SYSTEM_PROMPT.format(
             rule_context=prep_result.get("rule_context", ""),

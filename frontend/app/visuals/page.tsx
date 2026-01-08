@@ -14,7 +14,7 @@ import {
 
 export default function VisualsDemo() {
   return (
-    <div className="min-h-screen px-8 pb-8 pt-24">
+    <div className="min-h-screen px-8 pb-8 pt-32">
       <h1 className="text-3xl font-bold mb-8 text-center">COLREG Lights & Shapes</h1>
       <p className="text-center text-muted mb-12 max-w-2xl mx-auto">
         Hover over lights and shapes to see details.
@@ -47,7 +47,7 @@ export default function VisualsDemo() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
             {Object.entries(DAY_SHAPE_CONFIGS).map(([key, config]) => (
-              <div key={key} className="flex flex-col items-center">
+              <div key={key} className="flex flex-col items-center justify-center h-full">
                 <DayShapes
                   shapes={config.shapes}
                   size="md"
