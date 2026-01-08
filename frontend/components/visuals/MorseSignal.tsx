@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 
 interface MorseSignalProps {
   letter: string;
-  pattern: string; // e.g., ".-" for A, "-..." for B
+  pattern: string;
   playable?: boolean;
   size?: "sm" | "md" | "lg";
   showLabel?: boolean;
@@ -16,6 +16,46 @@ const DASH_DURATION = 300; // ms
 const SYMBOL_GAP = 100; // ms between symbols
 const FREQUENCY = 800; // Hz
 
+interface MorseCardProps {
+  letter: string;
+  pattern: string;
+  description: string;
+}
+
+export function MorseCard({ letter, pattern, description }: MorseCardProps) {
+  return (
+    <div className="group flex flex-col justify-between rounded-xl border border-border bg-card/40 p-5 transition-all duration-300 hover:bg-card hover:shadow-lg hover:border-primary/20 hover:-translate-y-1">
+      
+      {/* --- Header: Large Letter Badge --- */}
+      {/* Added 'flex justify-center' to center the badge horizontally */}
+      <div className="mb-4 flex justify-center">
+        {/* Changed 'group-hover:text-primary-foreground' to 'group-hover:text-white' to ensure it turns white */}
+        <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-2xl font-bold font-mono text-primary shadow-sm border border-primary/20 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+          {letter}
+        </span>
+      </div>
+
+      {/* --- Content: Description --- */}
+      <div className="mb-6 flex-grow text-center"> {/* Added text-center here as well for the description, optional but looks better with a centered badge */}
+        <p className="text-sm leading-relaxed text-muted-foreground/90 group-hover:text-foreground transition-colors">
+          {description}
+        </p>
+      </div>
+
+      {/* --- Footer: The Player --- */}
+      <div className="mt-auto rounded-lg bg-background/50 border border-border/50 p-3 flex items-center justify-between transition-colors group-hover:border-border">
+        <span className="text-xs text-muted-foreground font-mono">Signal</span>
+        <MorseSignal 
+          letter={letter} 
+          pattern={pattern} 
+          size="sm" 
+          showLabel={false} 
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function MorseSignal({
   letter,
   pattern,
@@ -25,7 +65,10 @@ export default function MorseSignal({
 }: MorseSignalProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  
+  // Refs for audio control
   const audioContextRef = useRef<AudioContext | null>(null);
+  const shouldStopRef = useRef(false);
 
   const sizeClasses = {
     sm: { dot: "w-2 h-2", dash: "w-5 h-2", gap: "gap-1", text: "text-xs" },
@@ -33,9 +76,32 @@ export default function MorseSignal({
     lg: { dot: "w-4 h-4", dash: "w-10 h-4", gap: "gap-2", text: "text-base" },
   };
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => stopSound();
+  }, []);
+
+  const stopSound = useCallback(() => {
+    shouldStopRef.current = true; // Signal loop to break
+    
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+    
+    setIsPlaying(false);
+    setActiveIndex(null);
+  }, []);
+
   const playTone = useCallback((duration: number): Promise<void> => {
     return new Promise((resolve) => {
-      if (!audioContextRef.current) {
+      // If stopped, exit immediately
+      if (shouldStopRef.current) {
+        resolve();
+        return;
+      }
+
+      if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
         audioContextRef.current = new AudioContext();
       }
       const ctx = audioContextRef.current;
@@ -48,7 +114,6 @@ export default function MorseSignal({
       oscillator.frequency.value = FREQUENCY;
       oscillator.type = "sine";
 
-      // Smooth fade in/out to avoid clicks
       gainNode.gain.setValueAtTime(0, ctx.currentTime);
       gainNode.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.01);
       gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + duration / 1000 - 0.01);
@@ -60,24 +125,42 @@ export default function MorseSignal({
     });
   }, []);
 
-  const playPattern = useCallback(async () => {
-    if (isPlaying) return;
+  const togglePlayback = useCallback(async () => {
+    // 1. If playing, STOP it
+    if (isPlaying) {
+      stopSound();
+      return;
+    }
+
+    // 2. If not playing, START it
+    shouldStopRef.current = false;
     setIsPlaying(true);
 
     const symbols = pattern.split("");
     for (let i = 0; i < symbols.length; i++) {
+      // Check for stop signal before playing
+      if (shouldStopRef.current) break;
+
       setActiveIndex(i);
       const symbol = symbols[i];
       const duration = symbol === "." ? DOT_DURATION : DASH_DURATION;
+      
       await playTone(duration);
+      
+      // Check for stop signal during gap
+      if (shouldStopRef.current) break;
+
       if (i < symbols.length - 1) {
         await new Promise((r) => setTimeout(r, SYMBOL_GAP));
       }
     }
 
-    setActiveIndex(null);
-    setIsPlaying(false);
-  }, [pattern, isPlaying, playTone]);
+    // Cleanup if finished naturally (not interrupted)
+    if (!shouldStopRef.current) {
+      setActiveIndex(null);
+      setIsPlaying(false);
+    }
+  }, [pattern, isPlaying, playTone, stopSound]);
 
   const symbols = pattern.split("");
   const classes = sizeClasses[size];
@@ -111,21 +194,22 @@ export default function MorseSignal({
       </div>
       {playable && (
         <button
-          onClick={playPattern}
-          disabled={isPlaying}
-          className={`p-1.5 rounded-full border border-border/50 hover:border-primary/50 hover:bg-primary/10 transition-colors disabled:opacity-50 ${classes.text}`}
-          title="Play morse code"
+          onClick={togglePlayback}
+          // REMOVED: disabled={isPlaying}
+          className={`p-1.5 rounded-full border border-border/50 hover:border-primary/50 hover:bg-primary/10 transition-colors ${classes.text}`}
+          title={isPlaying ? "Stop" : "Play morse code"}
         >
           {isPlaying ? (
+             // Stop Icon (Square)
             <svg
-              className="w-4 h-4 text-primary animate-pulse"
+              className="w-4 h-4 text-primary"
               fill="currentColor"
               viewBox="0 0 24 24"
             >
-              <rect x="6" y="4" width="4" height="16" rx="1" />
-              <rect x="14" y="4" width="4" height="16" rx="1" />
+              <rect x="6" y="6" width="12" height="12" rx="2" />
             </svg>
           ) : (
+            // Play Icon (Triangle)
             <svg
               className="w-4 h-4 text-muted hover:text-primary"
               fill="currentColor"

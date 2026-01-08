@@ -2,7 +2,6 @@
 
 import { Visual } from "@/types";
 import VesselLights from "./VesselLights";
-import LightArcs, { VESSEL_LIGHT_CONFIGS } from "./LightArcs";
 import DayShapes, { DAY_SHAPE_CONFIGS } from "./DayShapes";
 import SoundSignal, { FOG_SIGNALS } from "./SoundSignal";
 import MorseSignal, { MORSE_CODES, MARITIME_SIGNALS } from "./MorseSignal";
@@ -13,20 +12,21 @@ interface VisualRendererProps {
 
 // Map light-arcs config to VesselLights props
 const LIGHT_ARCS_TO_VESSEL_LIGHTS: Record<string, { type: Parameters<typeof VesselLights>[0]["type"]; length?: Parameters<typeof VesselLights>[0]["length"] }> = {
-  "power-driven-underway": { type: "power-driven", length: "under50m" },
-  "power-driven-over-50m": { type: "power-driven", length: "over50m" },
-  "sailing-underway": { type: "sailing", length: "over20m" },
-  "sailing-under-20m": { type: "sailing", length: "under20m" },
-  "sailing-optional": { type: "sailing", length: "over20m-optional" },
-  "vessel-towing": { type: "towing" },
-  "not-under-command": { type: "nuc" },
-  "restricted-ability-to-maneuver": { type: "ram" },
-  "anchored": { type: "anchored" },
-  "aground": { type: "aground" },
+  "power-driven": { type: "power-driven" },
+  "sailing": { type: "sailing"},
   "fishing-trawling": { type: "trawling" },
   "fishing-other": { type: "fishing" },
+  "vessel-towing": { type: "towing" },
+  "vessel-pushing": { type: "pushing" },
+  "not-under-command": { type: "nuc" },
+  "restricted-ability-to-maneuver": { type: "ram" },
+  "restricted-ability-to-maneuver-underwater-operations": { type: "ram-underwater" },
+  "restricted-ability-to-maneuver-mine-clearance": { type: "ram-mine-clearance" },
+  "anchored": { type: "anchored" },
+  "aground": { type: "aground" },
   "pilot-on-duty": { type: "pilot" },
   "constrained-by-draft": { type: "cbd" },
+  "seaplane": { type: "seaplane" },
 };
 
 export default function VisualRenderer({ visual }: VisualRendererProps) {
@@ -37,47 +37,29 @@ export default function VisualRenderer({ visual }: VisualRendererProps) {
       case "vessel-lights": {
         const vesselType = data.vesselType as string | undefined;
         const length = data.length as string | undefined;
-        const lights = data.lights as string[] | undefined;
-        const view = data.view as "port" | "starboard" | "ahead" | "stern" | undefined;
         const size = data.size as "sm" | "md" | "lg" | undefined;
 
         return (
           <VesselLights
             type={vesselType as Parameters<typeof VesselLights>[0]["type"]}
             length={length as Parameters<typeof VesselLights>[0]["length"]}
-            lights={lights as Parameters<typeof VesselLights>[0]["lights"]}
-            view={view}
             size={size || "md"}
           />
         );
       }
 
       case "light-arcs": {
+        // light-arcs now uses VesselLights which handles both side and top views
         const configKey = data.config as string | undefined;
-        const config = configKey && VESSEL_LIGHT_CONFIGS[configKey]
-          ? VESSEL_LIGHT_CONFIGS[configKey]
-          : null;
-        const lights = config?.lights || (data.lights as Parameters<typeof LightArcs>[0]["lights"]);
-        const vesselType = config?.vesselType || (data.vesselType as "power" | "sail" | undefined);
-        const size = (data.size as number) || 180;
-
-        // Get corresponding VesselLights config
         const vesselLightsConfig = configKey ? LIGHT_ARCS_TO_VESSEL_LIGHTS[configKey] : null;
+        const size = data.size as "sm" | "md" | "lg" | undefined;
 
-        return lights ? (
-          <div className="flex flex-wrap items-start justify-center gap-4">
-            {/* Side profile view */}
-            {vesselLightsConfig && (
-              <VesselLights
-                type={vesselLightsConfig.type}
-                length={vesselLightsConfig.length}
-                size="sm"
-                showLabels={false}
-              />
-            )}
-            {/* Top-down arc view */}
-            <LightArcs lights={lights} vesselType={vesselType} size={size} configKey={configKey} />
-          </div>
+        return vesselLightsConfig ? (
+          <VesselLights
+            type={vesselLightsConfig.type}
+            length={vesselLightsConfig.length}
+            size={size || "md"}
+          />
         ) : null;
       }
 

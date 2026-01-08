@@ -1,11 +1,18 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link"; // 1. Import Link
 import { motion } from "framer-motion";
+import { usePathname } from "next/navigation"; // Optional: for active styling
 
 const PARENT_URL = process.env.NEXT_PUBLIC_PARENT_URL || "https://bozuric.com";
 
 export default function Navigation() {
+  const pathname = usePathname(); 
+  const buttonClass = "px-4 py-2 rounded-lg border font-medium transition-all duration-300";
+  const activeStyle = "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20";
+  const inactiveStyle = "text-muted-foreground border-transparent hover:text-primary hover:bg-primary/5";
+
   return (
     <motion.header
       initial={{ y: -20, opacity: 0 }}
@@ -28,10 +35,32 @@ export default function Navigation() {
               className="h-10 md:h-12 w-auto"
             />
           </a>
-          <div className="flex items-center gap-1">
-            <button className="px-4 py-2 rounded-lg bg-primary/10 text-primary border border-primary/30 font-medium transition-all duration-300 hover:bg-primary/20">
+
+          <div className="flex items-center gap-3">
+            
+            {/* Assistant Button (Home) */}
+            <Link 
+              href="/" 
+              className={`${buttonClass} ${pathname === '/' ? activeStyle : inactiveStyle}`}
+            >
               Assistant
-            </button>
+            </Link>
+
+            {/* New Visuals Button */}
+            <Link 
+              href="/visuals" 
+              className={`${buttonClass} ${pathname === '/visuals' ? activeStyle : inactiveStyle}`}
+            >
+              Lights & Shapes
+            </Link>
+
+            <Link 
+              href="/sounds" 
+              className={`${buttonClass} ${pathname === '/sounds' ? activeStyle : inactiveStyle}`}
+            >
+              Sound Signals
+            </Link>
+
           </div>
         </div>
         <div className="text-muted text-sm hidden md:block">

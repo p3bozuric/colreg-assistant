@@ -3,6 +3,16 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 
+interface SoundCardProps {
+  config: {
+    pattern: string;
+    title: string;
+    description: string;
+    interval?: string;
+    rule?: string;
+  };
+}
+
 type BlastType = "short" | "prolonged";
 
 interface SoundSignalProps {
@@ -15,6 +25,44 @@ const SHORT_DURATION = 400;
 const PROLONGED_DURATION = 2000;
 const BLAST_GAP = 400;
 const FREQUENCY = 400;
+
+export function SoundCard({ config }: SoundCardProps) {
+  return (
+    <div className="group relative flex flex-col justify-between rounded-xl border border-border bg-card/40 p-5 transition-all duration-300 hover:bg-card hover:shadow-lg hover:border-primary/20 hover:-translate-y-1">
+      
+      {/* --- Header: Rule Badge & Interval --- */}
+      <div className="mb-3 flex items-start justify-between">
+        <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-mono font-medium text-primary shadow-sm border border-primary/20">
+          {config.rule || "General"}
+        </span>
+        
+        {config.interval && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground" title={`Sound every ${config.interval}`}>
+             {/* Clock Icon SVG if you don't have Lucide */}
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-70"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>{config.interval}</span>
+          </div>
+        )}
+      </div>
+
+      {/* --- Content: Title & Description --- */}
+      <div className="mb-6 space-y-2">
+        <h3 className="font-semibold leading-tight text-foreground/90 group-hover:text-primary transition-colors">
+          {config.title}
+        </h3>
+        <p className="text-xs leading-relaxed text-muted-foreground/80 line-clamp-2 group-hover:line-clamp-none group-hover:text-muted-foreground transition-all">
+          {config.description}
+        </p>
+      </div>
+
+      {/* --- Footer: The Player --- */}
+      <div className="mt-auto rounded-lg bg-background/50 border border-border/50 p-3 flex justify-center transition-colors group-hover:border-border">
+        <SoundSignal pattern={config.pattern} size="md" />
+      </div>
+      
+    </div>
+  );
+}
 
 export default function SoundSignal({
   pattern,
