@@ -24,7 +24,7 @@ export default function VisualsDemo() {
             Fog Signals
         </h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
             {Object.entries(FOG_SIGNALS)
             .filter(([_, config]) => config.rule?.includes("35"))
             .map(([key, config]) => (

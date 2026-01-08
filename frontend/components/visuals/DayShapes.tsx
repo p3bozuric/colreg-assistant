@@ -273,13 +273,13 @@ export const DAY_SHAPE_CONFIGS: Record<string, { shapes: ShapeType[]; title: str
     description: "Vessel at anchor - placed where best seen in the fore part of the vessel.",
     rule: "Rule 30(a)",
   },
-  "nuc": {
+  "not-under-command": {
     shapes: ["ball", "ball"],
     title: "Not under command",
     description: "Vessel is not under command - shapes in a vertical line where they can best be seen",
     rule: "Rule 27(a)",
   },
-  "ram": {
+  "restricted-ability-to-maneuver": {
     shapes: ["ball", "diamond", "ball"],
     title: "Restricted in ability to maneuver",
     description: "Vessel restricted in ability to maneuver - placed in a vertical line where they can best be seen",

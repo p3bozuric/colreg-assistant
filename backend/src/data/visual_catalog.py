@@ -6,71 +6,116 @@ Catalog IDs match frontend component configs for direct rendering.
 
 from typing import Literal
 
-VisualType = Literal["light-arcs", "day-shapes", "sound-signal", "morse-signal", "vessel-lights"]
+VisualType = Literal["day-shapes", "sound-signal", "morse-signal", "vessel-lights"]
 
 VISUAL_CATALOG: dict[str, dict] = {
     # ===========================================
-    # LIGHT ARCS - Navigation lights (top view)
+    # VESSEL LIGHTS - Navigation lights for various vessel types
     # ===========================================
-    "light-arcs:power-driven-underway": {
-        "type": "light-arcs",
-        "data": {"config": "power-driven-underway"},
-        "caption": "Power-driven vessel underway - navigation lights"
+    "vessel-lights:power-driven": {
+        "type": "vessel-lights",
+        "data": {"config": "power-driven"},
+        "caption": "Power-driven vessel",
+        "use-when": "When user wants to see lights for a power-driven vessel.",
+        "rule": "Rule 23"
     },
-    "light-arcs:power-driven-over-50m": {
-        "type": "light-arcs",
-        "data": {"config": "power-driven-over-50m"},
-        "caption": "Power-driven vessel over 50m - two masthead lights"
+    "vessel-lights:sailing": {
+        "type": "vessel-lights",
+        "data": {"config": "sailing"},
+        "caption": "Sailing vessel",
+        "use-when": "When user wants to see lights for a sailing vessel.",
+        "rule": "Rule 25"
     },
-    "light-arcs:sailing-underway": {
-        "type": "light-arcs",
-        "data": {"config": "sailing-underway"},
-        "caption": "Sailing vessel underway - navigation lights"
-    },
-    "light-arcs:vessel-towing": {
-        "type": "light-arcs",
-        "data": {"config": "vessel-towing"},
-        "caption": "Vessel engaged in towing - yellow towing light"
-    },
-    "light-arcs:not-under-command": {
-        "type": "light-arcs",
-        "data": {"config": "not-under-command"},
-        "caption": "Vessel not under command - two red all-round lights"
-    },
-    "light-arcs:restricted-ability-to-maneuver": {
-        "type": "light-arcs",
-        "data": {"config": "restricted-ability-to-maneuver"},
-        "caption": "Vessel restricted in ability to maneuver - red-white-red"
-    },
-    "light-arcs:anchored": {
-        "type": "light-arcs",
-        "data": {"config": "anchored"},
-        "caption": "Vessel at anchor - white all-round light"
-    },
-    "light-arcs:aground": {
-        "type": "light-arcs",
-        "data": {"config": "aground"},
-        "caption": "Vessel aground - two red + anchor light"
-    },
-    "light-arcs:fishing-trawling": {
-        "type": "light-arcs",
+    "vessel-lights:fishing-trawling": {
+        "type": "vessel-lights",
         "data": {"config": "fishing-trawling"},
-        "caption": "Vessel engaged in trawling - green over white"
+        "caption": "Fishing vessel trawling",
+        "use-when": "When user wants to see lights for a fishing vessel trawling.",
+        "rule": "Rule 26"
     },
-    "light-arcs:fishing-other": {
-        "type": "light-arcs",
+    "vessel-lights:fishing-other": {
+        "type": "vessel-lights",
         "data": {"config": "fishing-other"},
-        "caption": "Fishing vessel (not trawling) - red over white"
+        "caption": "Fishing vessel (not trawling)",
+        "use-when": "When user wants to see lights for a fishing vessel that is not trawling.",
+        "rule": "Rule 26"
     },
-    "light-arcs:pilot-on-duty": {
-        "type": "light-arcs",
+    "vessel-lights:vessel-towing": {
+        "type": "vessel-lights",
+        "data": {"config": "vessel-towing"},
+        "caption": "Towing",
+        "use-when": "When user wants to see lights for a vessel that's towing another vessel or being towed by another vessel.",
+        "rule": "Rule 24"
+    },
+    "vessel-lights:vessel-pushing": {
+        "type": "vessel-lights",
+        "data": {"config": "vessel-pushing"},
+        "caption": "Pushing",
+        "use-when": "When user wants to see lights for a vessel that's pushing another vessel or being pushed by another vessel.",
+        "rule": "Rule 24"
+    },
+    "vessel-lights:not-under-command": {
+        "type": "vessel-lights",
+        "data": {"config": "not-under-command"},
+        "caption": "Vessel not under command",
+        "use-when": "When user wants to see lights for a vessel not under command.",
+        "rule": "Rule 27"
+    },
+    "vessel-lights:restricted-ability-to-maneuver": {
+        "type": "vessel-lights",
+        "data": {"config": "restricted-ability-to-maneuver"},
+        "caption": "Vessel restricted in ability to maneuver",
+        "use-when": "When user wants to see lights for a vessel restricted in ability to maneuver.",
+        "rule": "Rule 27"
+    },
+    "vessel-lights:restricted-ability-to-maneuver-underwater-operations": {
+        "type": "vessel-lights",
+        "data": {"config": "restricted-ability-to-maneuver-underwater-operations"},
+        "caption": "Vessel restricted in ability to maneuver - underwater operations",
+        "use-when": "When user wants to see lights for a vessel restricted in ability to maneuver because of underwater operations. (not for diving operations)",
+        "rule": "Rule 27"
+    },
+    "vessel-lights:restricted-ability-to-maneuver-mine-clearance": {
+        "type": "vessel-lights",
+        "data": {"config": "restricted-ability-to-maneuver-mine-clearance"},
+        "caption": "Vessel restricted in ability to maneuver - mine clearance",
+        "use-when": "When user wants to see lights for a vessel restricted in ability to maneuver because of mine clearance.",
+        "rule": "Rule 27"
+    },
+    "vessel-lights:anchored": {
+        "type": "vessel-lights",
+        "data": {"config": "anchored"},
+        "caption": "Vessel at anchor",
+        "use-when": "When user wants to see lights for a vessel at anchor.",
+        "rule": "Rule 30"
+    },
+    "vessel-lights:aground": {
+        "type": "vessel-lights",
+        "data": {"config": "aground"},
+        "caption": "Vessel aground",
+        "use-when": "When user wants to see lights for a vessel aground.",
+        "rule": "Rule 30"
+    },
+    "vessel-lights:pilot-on-duty": {
+        "type": "vessel-lights",
         "data": {"config": "pilot-on-duty"},
-        "caption": "Pilot vessel on duty - white over red"
+        "caption": "Pilot vessel on duty",
+        "use-when": "When user wants to see lights for a pilot vessel on duty.",
+        "rule": "Rule 29"
     },
-    "light-arcs:constrained-by-draft": {
-        "type": "light-arcs",
+    "vessel-lights:constrained-by-draft": {
+        "type": "vessel-lights",
         "data": {"config": "constrained-by-draft"},
-        "caption": "Vessel constrained by draft - three red lights"
+        "caption": "Vessel constrained by draft",
+        "use-when": "When user wants to see lights for a vessel constrained by draft.",
+        "rule": "Rule 28"
+    },
+    "vessel-lights:seaplane": {
+        "type": "vessel-lights",
+        "data": {"config": "seaplane"},
+        "caption": "Seaplane",
+        "use-when": "When user wants to see lights for a seaplane.",
+        "rule": "Rule 31"
     },
 
     # ===========================================
@@ -79,58 +124,119 @@ VISUAL_CATALOG: dict[str, dict] = {
     "day-shapes:anchored": {
         "type": "day-shapes",
         "data": {"config": "anchored"},
-        "caption": "Vessel at anchor - one ball (Rule 30)"
+        "caption": "Vessel at anchor - placed where best seen in the fore part of the vessel.",
+        "use-when": "When user wants to see day shapes for a vessel at anchor. It should be placed where best seen in fore part of the vessel.",
+        "rule": "Rule 30"
     },
-    "day-shapes:nuc": {
+    "day-shapes:not-under-command": {
         "type": "day-shapes",
-        "data": {"config": "nuc"},
-        "caption": "Not under command - two balls (Rule 27)"
+        "data": {"config": "not-under-command"},
+        "caption": "Vessel is not under command - shapes in a vertical line where they can best be seen",
+        "use-when": "When user wants to see day shapes for a vessel not under command. Shapes should be in a vertical line where they can best be seen.",
+        "rule": "Rule 27"
     },
-    "day-shapes:ram": {
+    "day-shapes:restricted-ability-to-maneuver": {
         "type": "day-shapes",
-        "data": {"config": "ram"},
-        "caption": "Restricted in ability to maneuver - ball-diamond-ball (Rule 27)"
+        "data": {"config": "restricted-ability-to-maneuver"},
+        "caption": "Restricted in ability to maneuver",
+        "use-when": "When user wants to see day shapes for a vessel restricted in ability to maneuver. ",
+        "rule": "Rule 27"
     },
-    "day-shapes:cbd": {
+    "day-shapes:underwater-operations": {
         "type": "day-shapes",
-        "data": {"config": "cbd"},
-        "caption": "Constrained by draught - cylinder (Rule 28)"
+        "data": {"config": "ram-underwater-ops"},
+        "caption": "Vessel restricted in ability to maneuver because of underwater operations - placed in a vertical line where they can best be seen. Supplementary shapes required for indication of obstructions and free passage.",
+        "use-when": "When user wants to see day shapes for a vessel restricted in ability to maneuver because of underwater operations.",
+        "rule": "Rule 27"
     },
-    "day-shapes:aground": {
+    "day-shapes:underwater-operations-may-pass": {
         "type": "day-shapes",
-        "data": {"config": "aground"},
-        "caption": "Vessel aground - three balls (Rule 30)"
+        "data": {"config": "ram-underwater-ops-vessel-may-pass"},
+        "caption": "Shapes that indicate the side on which another vessel may pass in case of underwater operations.",
+        "use-when": "When user wants to see day shapes that vessel restricted in ability to maneuver because of underwater operations uses to mark side of the ship on which other vessels may pass her.",
+        "rule": "Rule 27"
     },
-    "day-shapes:sailing-motor": {
+    "day-shapes:underwater-operations-obstruction": {
         "type": "day-shapes",
-        "data": {"config": "sailing-motor"},
-        "caption": "Sailing vessel under power - cone apex down (Rule 25)"
-    },
-    "day-shapes:fishing-trawling": {
-        "type": "day-shapes",
-        "data": {"config": "fishing-trawling"},
-        "caption": "Vessel engaged in trawling - two cones (Rule 26)"
-    },
-    "day-shapes:fishing-other": {
-        "type": "day-shapes",
-        "data": {"config": "fishing-other"},
-        "caption": "Fishing vessel (not trawling) - two cones (Rule 26)"
-    },
-    "day-shapes:towing-over-200m": {
-        "type": "day-shapes",
-        "data": {"config": "towing-over-200m"},
-        "caption": "Towing vessel (tow over 200m) - diamond (Rule 24)"
+        "data": {"config": "ram-underwater-ops-obstruction"},
+        "caption": "Shapes that indicate the side on which obstructions exist in case of underwater operations.",
+        "use-when": "When user wants to see day shapes that vessel restricted in ability to maneuver because of underwater operations uses to mark side of the ship on which there is some kind of obstruction.",
+        "rule": "Rule 27"
     },
     "day-shapes:mine-clearance": {
         "type": "day-shapes",
         "data": {"config": "mine-clearance"},
-        "caption": "Mine clearance vessel - three balls (Rule 27)"
+        "caption": "Vessel engaged in mine clearance. Three balls: One at foremast head and one at each end of the fore yard. Dangerous to approach within 1000m.",
+        "use-when": "When user wants to see day shapes for a vessel engaged in mine clearance. Keep in mind - these are not in vertical but in a cross pattern. One ball is at foremast head, and other two at each end of the fore yard. ",
+        "rule": "Rule 27"
+    },
+    "day-shapes:constrained-by-draught": {
+        "type": "day-shapes",
+        "data": {"config": "cbd"},
+        "caption": "Constrained by draught - exhibiting the shape where it can best be seen.",
+        "use-when": "When user wants to see day shapes for vessel constrained by draught.",
+        "rule": "Rule 28"
+    },
+    "day-shapes:aground": {
+        "type": "day-shapes",
+        "data": {"config": "aground"},
+        "caption": "Aground vessel should exhibit the shapes in a vertical line where they can best be seen.",
+        "use-when": "When user wants to see day shapes for vessel that's aground.",
+        "rule": "Rule 30"
+    },
+    "day-shapes:sailing-motor": {
+        "type": "day-shapes",
+        "data": {"config": "sailing-motor"},
+        "caption": "Sailing vessel under power (motor-sailing).",
+        "use-when": "User wants to see day shapes for sailing vessel under power.",
+        "rule": "Rule 25"
+
+    },
+    "day-shapes:fishing": {
+        "type": "day-shapes",
+        "data": {"config": "fishing"},
+        "caption": "Vessel engaged in trawling or other fishing other then trawling (but gear does not extend more than 150m horizontally from the vessel)",
+        "use-when": "User wants to see usual shapes fishing vessel needs to show during the day",
+        "rule": "Rule 26"
+    },
+    "day-shapes:fishing-gear": {
+        "type": "day-shapes",
+        "data": {"config": "fishing-gear"},
+        "caption": "Vessel engaged in fishing - when gear extends more than 150m horizontally from the vessel. This shape should be exhibited on the side on which the gear is extended.",
+        "use-when": "User wants to see day shape fishing vessel needs to exhibit on side where is his fishing gear when gear extends more then 150m",
+        "rule": "Rule 26"
+    },
+    "day-shapes:towing-over-200m": {
+        "type": "day-shapes",
+        "data": {"config": "towing-over-200m"},
+        "caption": "Vessel towing & vessel being towed both exhibit the shape (tow length over 200m)",
+        "use-when": "When user wants to see day shape that's used in towing when tow length is over 200m horizontally.",
+        "rule": "Rule 24"
+    },
+    "day-shapes:towing-submerged-under-200m": {
+        "type": "day-shapes",
+        "data": {"config": "towing-submerged-under-200m"},
+        "caption": "Only partially submerged vessel being towed needs to exhibit the shape (tow length under 200m)",
+        "use-when": "When user wants to see day shape that's used in towing when partially submerged tows length is under 200m horizontally.",
+        "rule": "Rule 24"
+    },
+    "day-shapes:towing-submerged-over-200m": {
+        "type": "day-shapes",
+        "data": {"config": "towing-submerged-over-200m"},
+        "caption": "Vessel towing & vessel being towed both exhibit the shape (tow length over 200m)",
+        "use-when": "When user wants to see day shape that's used in towing when partially submerged tows length is over 200m horizontally.",
+        "rule": "Rule 24"
     },
     "day-shapes:diving-operations": {
         "type": "day-shapes",
         "data": {"config": "diving-operations"},
-        "caption": "Diving operations - ball-diamond-ball (Rule 27)"
+        "caption": "Vessel engaged in diving operations (too small for standard shapes). Rigid replica of International Code flag 'A' (at least 1m height).",
+        "use-when": "User wants to see 'shape' or 'flag' for diving operations",
+        "rule": "Rule 27"
     },
+
+
+# THIS IS WHERE YOU LEFT OFF
 
     # ===========================================
     # SOUND SIGNALS - Fog and maneuvering signals
@@ -138,62 +244,86 @@ VISUAL_CATALOG: dict[str, dict] = {
     "sound-signal:power-driven-making-way": {
         "type": "sound-signal",
         "data": {"config": "power-driven-making-way"},
-        "caption": "Power-driven vessel making way - one prolonged blast"
+        "caption": "Power-driven vessel making way - one prolonged blast",
+        "use-when": "",
+        "rule": ""
     },
     "sound-signal:power-driven-stopped": {
         "type": "sound-signal",
         "data": {"config": "power-driven-underway-not-making-way"},
-        "caption": "Power-driven vessel stopped - two prolonged blasts"
+        "caption": "Power-driven vessel stopped - two prolonged blasts",
+        "use-when": "",
+        "rule": ""
     },
     "sound-signal:nuc-ram-cbd-sailing-fishing": {
         "type": "sound-signal",
         "data": {"config": "nuc-ram-cbd-sailing-fishing"},
-        "caption": "NUC/RAM/CBD/Sailing/Fishing - one prolonged, two short"
+        "caption": "NUC/RAM/CBD/Sailing/Fishing - one prolonged, two short",
+        "use-when": "",
+        "rule": ""
     },
     "sound-signal:vessel-towed": {
         "type": "sound-signal",
         "data": {"config": "vessel-towed"},
-        "caption": "Vessel being towed - one prolonged, three short"
+        "caption": "Vessel being towed - one prolonged, three short",
+        "use-when": "",
+        "rule": ""
     },
     "sound-signal:pilot-vessel": {
         "type": "sound-signal",
         "data": {"config": "pilot-vessel"},
-        "caption": "Pilot vessel identity signal"
+        "caption": "Pilot vessel identity signal",
+        "use-when": "",
+        "rule": ""
     },
     "sound-signal:altering-to-starboard": {
         "type": "sound-signal",
         "data": {"config": "altering-to-starboard"},
-        "caption": "Altering course to starboard - one short blast"
+        "caption": "Altering course to starboard - one short blast",
+        "use-when": "",
+        "rule": ""
     },
     "sound-signal:altering-to-port": {
         "type": "sound-signal",
         "data": {"config": "altering-to-port"},
-        "caption": "Altering course to port - two short blasts"
+        "caption": "Altering course to port - two short blasts",
+        "use-when": "",
+        "rule": ""
     },
     "sound-signal:operating-astern": {
         "type": "sound-signal",
         "data": {"config": "operating-astern"},
-        "caption": "Operating astern propulsion - three short blasts"
+        "caption": "Operating astern propulsion - three short blasts",
+        "use-when": "",
+        "rule": ""
     },
     "sound-signal:danger-doubt": {
         "type": "sound-signal",
         "data": {"config": "danger-doubt"},
-        "caption": "Danger/doubt signal - five or more short blasts"
+        "caption": "Danger/doubt signal - five or more short blasts",
+        "use-when": "",
+        "rule": ""
     },
     "sound-signal:overtaking-starboard": {
         "type": "sound-signal",
         "data": {"config": "overtaking-starboard"},
-        "caption": "Intending to overtake on starboard side"
+        "caption": "Intending to overtake on starboard side",
+        "use-when": "",
+        "rule": ""
     },
     "sound-signal:overtaking-port": {
         "type": "sound-signal",
         "data": {"config": "overtaking-port"},
-        "caption": "Intending to overtake on port side"
+        "caption": "Intending to overtake on port side",
+        "use-when": "",
+        "rule": ""
     },
     "sound-signal:overtaking-agreement": {
         "type": "sound-signal",
         "data": {"config": "overtaking-agreement"},
-        "caption": "Agreement to be overtaken"
+        "caption": "Agreement to be overtaken",
+        "use-when": "",
+        "rule": ""
     },
 
     # ===========================================
@@ -202,62 +332,86 @@ VISUAL_CATALOG: dict[str, dict] = {
     "morse-signal:A": {
         "type": "morse-signal",
         "data": {"letter": "A", "showMeaning": True},
-        "caption": "Signal A (.-) - Diver down, keep clear at slow speed"
+        "caption": "Signal A (.-) - Diver down, keep clear at slow speed",
+        "use-when": "",
+        "rule": ""
     },
     "morse-signal:B": {
         "type": "morse-signal",
         "data": {"letter": "B", "showMeaning": True},
-        "caption": "Signal B (-...) - Dangerous goods aboard"
+        "caption": "Signal B (-...) - Dangerous goods aboard",
+        "use-when": "",
+        "rule": ""
     },
     "morse-signal:D": {
         "type": "morse-signal",
         "data": {"letter": "D", "showMeaning": True},
-        "caption": "Signal D (-..) - Keep clear, maneuvering with difficulty"
+        "caption": "Signal D (-..) - Keep clear, maneuvering with difficulty",
+        "use-when": "",
+        "rule": ""
     },
     "morse-signal:G": {
         "type": "morse-signal",
         "data": {"letter": "G", "showMeaning": True},
-        "caption": "Signal G (--.) - I require a pilot"
+        "caption": "Signal G (--.) - I require a pilot",
+        "use-when": "",
+        "rule": ""
     },
     "morse-signal:H": {
         "type": "morse-signal",
         "data": {"letter": "H", "showMeaning": True},
-        "caption": "Signal H (....) - Pilot on board"
+        "caption": "Signal H (....) - Pilot on board",
+        "use-when": "",
+        "rule": ""
     },
     "morse-signal:J": {
         "type": "morse-signal",
         "data": {"letter": "J", "showMeaning": True},
-        "caption": "Signal J (.---) - On fire with dangerous cargo, keep clear"
+        "caption": "Signal J (.---) - On fire with dangerous cargo, keep clear",
+        "use-when": "",
+        "rule": ""
     },
     "morse-signal:K": {
         "type": "morse-signal",
         "data": {"letter": "K", "showMeaning": True},
-        "caption": "Signal K (-.-) - I wish to communicate with you"
+        "caption": "Signal K (-.-) - I wish to communicate with you",
+        "use-when": "",
+        "rule": ""
     },
     "morse-signal:L": {
         "type": "morse-signal",
         "data": {"letter": "L", "showMeaning": True},
-        "caption": "Signal L (.-..) - Stop your vessel instantly"
+        "caption": "Signal L (.-..) - Stop your vessel instantly",
+        "use-when": "",
+        "rule": ""
     },
     "morse-signal:O": {
         "type": "morse-signal",
         "data": {"letter": "O", "showMeaning": True},
-        "caption": "Signal O (---) - Man overboard"
+        "caption": "Signal O (---) - Man overboard",
+        "use-when": "",
+        "rule": ""
     },
     "morse-signal:U": {
         "type": "morse-signal",
         "data": {"letter": "U", "showMeaning": True},
-        "caption": "Signal U (..-) - You are running into danger"
+        "caption": "Signal U (..-) - You are running into danger",
+        "use-when": "",
+        "rule": ""
     },
     "morse-signal:V": {
         "type": "morse-signal",
         "data": {"letter": "V", "showMeaning": True},
-        "caption": "Signal V (...-) - I require assistance"
+        "caption": "Signal V (...-) - I require assistance",
+        "use-when": "",
+        "rule": ""
     },
     "morse-signal:W": {
         "type": "morse-signal",
         "data": {"letter": "W", "showMeaning": True},
-        "caption": "Signal W (.--) - I require medical assistance"
+        "caption": "Signal W (.--) - I require medical assistance",
+        "use-when": "",
+        "rule": ""
     },
 }
 
@@ -266,7 +420,7 @@ def get_visual_by_id(visual_id: str) -> dict | None:
     """Retrieve visual config by catalog ID.
 
     Args:
-        visual_id: The catalog ID (e.g., "light-arcs:power-driven-underway")
+        visual_id: The catalog ID (e.g., "vessel-lights:power-driven-underway")
 
     Returns:
         Visual config dict or None if not found
@@ -294,7 +448,7 @@ def generate_catalog_reference() -> str:
             type_display = vtype.replace("-", " ").title()
             lines.append(f"\n**{type_display}:**")
 
-        caption = config.get("caption", "")
-        lines.append(f"- `{visual_id}` - {caption}")
+        use_when = config.get("use-when", "")
+        lines.append(f"- `{visual_id}` - {use_when}")
 
     return "\n".join(lines)

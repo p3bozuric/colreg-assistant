@@ -5,6 +5,7 @@ import VesselLights from "./VesselLights";
 import DayShapes, { DAY_SHAPE_CONFIGS } from "./DayShapes";
 import SoundSignal, { FOG_SIGNALS } from "./SoundSignal";
 import MorseSignal, { MORSE_CODES, MARITIME_SIGNALS } from "./MorseSignal";
+import { VESSEL_TYPES } from "./VesselLights";
 
 interface VisualRendererProps {
   visual: Visual;
@@ -14,18 +15,18 @@ interface VisualRendererProps {
 const LIGHT_ARCS_TO_VESSEL_LIGHTS: Record<string, { type: Parameters<typeof VesselLights>[0]["type"]; length?: Parameters<typeof VesselLights>[0]["length"] }> = {
   "power-driven": { type: "power-driven" },
   "sailing": { type: "sailing"},
-  "fishing-trawling": { type: "trawling" },
-  "fishing-other": { type: "fishing" },
-  "vessel-towing": { type: "towing" },
-  "vessel-pushing": { type: "pushing" },
-  "not-under-command": { type: "nuc" },
-  "restricted-ability-to-maneuver": { type: "ram" },
-  "restricted-ability-to-maneuver-underwater-operations": { type: "ram-underwater" },
-  "restricted-ability-to-maneuver-mine-clearance": { type: "ram-mine-clearance" },
+  "fishing-trawling": { type: "fishing-trawling" },
+  "fishing-other": { type: "fishing-other" },
+  "vessel-towing": { type: "vessel-towing" },
+  "vessel-pushing": { type: "vessel-pushing" },
+  "not-under-command": { type: "not-under-command" },
+  "restricted-ability-to-maneuver": { type: "restricted-ability-to-maneuver" },
+  "restricted-ability-to-maneuver-underwater-operations": { type: "restricted-ability-to-maneuver-underwater-operations" },
+  "restricted-ability-to-maneuver-mine-clearance": { type: "restricted-ability-to-maneuver-mine-clearance" },
   "anchored": { type: "anchored" },
   "aground": { type: "aground" },
-  "pilot-on-duty": { type: "pilot" },
-  "constrained-by-draft": { type: "cbd" },
+  "pilot-on-duty": { type: "pilot-on-duty" },
+  "constrained-by-draft": { type: "constrained-by-draft" },
   "seaplane": { type: "seaplane" },
 };
 
@@ -35,32 +36,15 @@ export default function VisualRenderer({ visual }: VisualRendererProps) {
   const renderVisual = () => {
     switch (type) {
       case "vessel-lights": {
-        const vesselType = data.vesselType as string | undefined;
-        const length = data.length as string | undefined;
+        const vesselType = data.config as string | undefined;
         const size = data.size as "sm" | "md" | "lg" | undefined;
 
         return (
           <VesselLights
             type={vesselType as Parameters<typeof VesselLights>[0]["type"]}
-            length={length as Parameters<typeof VesselLights>[0]["length"]}
-            size={size || "md"}
+            size={size || "sm"}
           />
         );
-      }
-
-      case "light-arcs": {
-        // light-arcs now uses VesselLights which handles both side and top views
-        const configKey = data.config as string | undefined;
-        const vesselLightsConfig = configKey ? LIGHT_ARCS_TO_VESSEL_LIGHTS[configKey] : null;
-        const size = data.size as "sm" | "md" | "lg" | undefined;
-
-        return vesselLightsConfig ? (
-          <VesselLights
-            type={vesselLightsConfig.type}
-            length={vesselLightsConfig.length}
-            size={size || "md"}
-          />
-        ) : null;
       }
 
       case "day-shapes": {

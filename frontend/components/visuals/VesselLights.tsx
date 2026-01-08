@@ -102,18 +102,18 @@ function getArcOriginY(arc: { position?: string; customOrigin?: { x: number; y: 
 export type VesselType =
   | "power-driven"
   | "sailing"
-  | "fishing"
-  | "trawling"
-  | "nuc"
-  | "ram"
-  | "ram-underwater"
-  | "ram-mine-clearance"
-  | "cbd"
-  | "towing"
-  | "pushing"
+  | "fishing-trawling"
+  | "fishing-other"
+  | "not-under-command"
+  | "restricted-ability-to-maneuver"
+  | "restricted-ability-to-maneuver-underwater-operations"
+  | "restricted-ability-to-maneuver-mine-clearance"
+  | "constrained-by-draft"
+  | "vessel-towing"
+  | "vessel-pushing"
   | "anchored"
   | "aground"
-  | "pilot"
+  | "pilot-on-duty"
   | "seaplane";
 
 export type LengthCategory =
@@ -196,20 +196,20 @@ function describeArc(x: number, y: number, radius: number, startAngle: number, e
 // RESTORED: Exporting VESSEL_TYPES for external use
 export const VESSEL_TYPES: Record<VesselType, string> = {
   "power-driven": "Power-driven vessel making way",
-  sailing: "Sailing vessel underway & vessel under oars",
-  fishing: "Vessel engaged in fishing (other than trawling)",
-  trawling: "Vessel engaged in trawling",
-  nuc: "Vessel not under command",
-  ram: "Restricted manueverability",
-  "ram-underwater": "Restricted manueverability - underwater operations",
-  "ram-mine-clearance": "Restricted manueverability - mine clearance",
-  cbd: "Vessel constrained by her draught",
-  towing: "Power-driven vessel towing",
-  pushing: "Power-driven vessel pushing ahead",
-  anchored: "Vessel at anchor",
-  aground: "Vessel aground",
-  pilot: "Pilot vessel on duty",
-  seaplane: "Seaplanes"
+  "sailing": "Sailing vessel underway & vessel under oars",
+  "fishing-other": "Vessel engaged in fishing (other than trawling)",
+  "fishing-trawling": "Vessel engaged in trawling",
+  "not-under-command": "Vessel not under command",
+  "restricted-ability-to-maneuver": "Restricted manueverability",
+  "restricted-ability-to-maneuver-underwater-operations": "Restricted manueverability - underwater operations",
+  "restricted-ability-to-maneuver-mine-clearance": "Restricted manueverability - mine clearance",
+  "constrained-by-draft": "Vessel constrained by her draught",
+  "vessel-towing": "Power-driven vessel towing",
+  "vessel-pushing": "Power-driven vessel pushing ahead",
+  "anchored": "Vessel at anchor",
+  "aground": "Vessel aground",
+  "pilot-on-duty": "Pilot vessel on duty",
+  "seaplane": "Seaplanes"
 };
 
 const SIZE_CONFIG = {
@@ -278,7 +278,7 @@ export const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, { lights: L
       arcs: [ARCS.masthead, ...ARCS.sidelights, ARCS.stern],
     },
   },
-  sailing: {
+  "sailing": {
     "Under 7m": {
       lights: [{ id: "ar-white", x: 65, y: 75, color: "white", label: "Handheld lantern", isAllRound: true }],
       arcs: [{ type: "ar-white", color: "white", arc: 360, startAngle: 0, range: 2, position: "center", label: "Handheld lantern" }],
@@ -319,7 +319,7 @@ export const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, { lights: L
       arcs: [{ type: "lantern", color: "white", arc: 360, startAngle: 0, range: 2, position: "center", label: "Handheld lantern" }],
     },
   },
-  fishing: {
+  "fishing-other": {
     "Making way": {
       lights: [
         { id: "ar-red", x: 20, y: 28, color: "red", label: "All-round Red (Upper)", isAllRound: true },
@@ -384,7 +384,7 @@ export const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, { lights: L
       ],
     },
   },
-  trawling: {
+  "fishing-trawling": {
     "Making way": {
       lights: [
         { id: "ar-green", x: 20, y: 28, color: "green", label: "All-round Green (Upper)", isAllRound: true },
@@ -427,7 +427,7 @@ export const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, { lights: L
       ],
     },
   },
-  nuc: {
+  "not-under-command": {
     "Making way": {
       lights: [
         { id: "ar-red1", x: 20, y: 28, color: "red", label: "All-round Red (Upper)", isAllRound: true },
@@ -454,7 +454,7 @@ export const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, { lights: L
       arcs: [...ARCS.nuc, ...ARCS.sidelights, ARCS.stern],
     },
   },
-  ram: {
+  "restricted-ability-to-maneuver": {
     "Making way": {
       lights: [
         { id: "ar-red1", x: 20, y: 35, color: "red", label: "All-round Red (Upper)", isAllRound: true },
@@ -553,7 +553,7 @@ export const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, { lights: L
       ],
     },
   },
-  "ram-underwater": {
+  "restricted-ability-to-maneuver-underwater-operations": {
     "Making way": {
       lights: [
         { id: "ar-red1", x: 20, y: 35, color: "red", label: "All-round Red (Upper)", isAllRound: true },
@@ -645,7 +645,7 @@ export const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, { lights: L
       ],
     },
   },
-  "ram-mine-clearance": {
+  "restricted-ability-to-maneuver-mine-clearance": {
     "Underway": {
       lights: [
         { id: "ar-green-unique", x: 20, y: 35, color: "green", label: "All-round Green", isAllRound: true },
@@ -697,7 +697,7 @@ export const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, { lights: L
       ],
     },
   },
-  cbd: {
+  "constrained-by-draft": {
     "Under 50m": {
        lights: [
            { id: "ar-red1", x: 20, y: 35, color: "red", label: "All-round Red", isAllRound: true},
@@ -748,7 +748,7 @@ export const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, { lights: L
        ]
     },
   },
-  anchored: {
+  "anchored": {
     "Under 50m": {
       lights: [{ id: "anchor", x: 20, y: 26, color: "white", label: "Anchor light", isAllRound: true }],
       arcs: [ARCS.anchor],
@@ -780,7 +780,7 @@ export const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, { lights: L
       arcs: [ARCS.anchor],
     },
   },
-  aground: {
+  "aground": {
     "Under 50m": {
       lights: [
         { id: "ar-red1", x: 20, y: 48, color: "red", label: "All-round Red (Upper)", isAllRound: true },
@@ -836,7 +836,7 @@ export const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, { lights: L
       ],
     }, 
   },
-  pilot: {
+  "pilot-on-duty": {
     "Underway": {
       lights: [
         { id: "ar-white", x: 20, y: 28, color: "white", label: "Pilot White", isAllRound: true },
@@ -876,7 +876,7 @@ export const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, { lights: L
       ],
     },
   },
-  towing: {
+  "vessel-towing": {
       "Tow under 200m": {
         lights: [
             { id: "mh1", x: 23, y: 35, color: "white", label: "Masthead (upper)" },
@@ -994,7 +994,7 @@ export const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, { lights: L
           ]
       },
   },
-  pushing: {
+  "vessel-pushing": {
       "Single vessel": {
           lights: [
             { id: "mh1", x: 77, y: 35, color: "white", label: "Masthead (upper)" },
@@ -1066,7 +1066,7 @@ export const VESSEL_LIGHT_CONFIGS: Record<VesselType, Record<string, { lights: L
           ]
       },
   },
-  seaplane: {
+  "seaplane": {
       "A seaplane": {
           lights: [
             { id: "mh", x: 83, y: 33, color: "white", label: "White light" },
@@ -1122,7 +1122,7 @@ const TopViewHull = ({ width, height, type }: { width: number; height: number; t
         );
     }
     
-    if (type === 'towing') {
+    if (type === 'vessel-towing') {
         // Tug vessel (top/forward) + towed vessel (bottom/aft) with tow line
         const tugYStart = height * 0.18;
         const tugLength = height * 0.22;
@@ -1169,7 +1169,7 @@ const TopViewHull = ({ width, height, type }: { width: number; height: number; t
         );
     }
 
-    if (type === 'pushing') {
+    if (type === 'vessel-pushing') {
         // Pushed vessel(s) (top/forward) + pusher (bottom/aft)
         const pushedYStart = height * 0.18;
         const pushedLength = height * 0.28;
@@ -1730,20 +1730,20 @@ export default function VesselLights({
               {view === "ahead" ? (
                 type === "sailing" ? <SailAheadSilhouette width={width} height={height} /> :
                 type === "seaplane" ? <SeaplaneAheadSilhouette width={width} height={height} /> :
-                type === "pushing" ? <PushingAheadSilhouette width={width} height={height} /> :
-                type === "towing" ? <TowingAheadSilhouette width={width} height={height} /> :
+                type === "vessel-pushing" ? <PushingAheadSilhouette width={width} height={height} /> :
+                type === "vessel-towing" ? <TowingAheadSilhouette width={width} height={height} /> :
                 <AheadSilhouette width={width} height={height} />
               ) : view === "stern" ? (
                 type === "sailing" ? <SailSternSilhouette width={width} height={height} /> :
                 type === "seaplane" ? <SeaplaneSternSilhouette width={width} height={height} /> :
-                type === "pushing" ? <PushingSternSilhouette width={width} height={height} /> :
-                type === "towing" ? <TowingSternSilhouette width={width} height={height} /> :
+                type === "vessel-pushing" ? <PushingSternSilhouette width={width} height={height} /> :
+                type === "vessel-towing" ? <TowingSternSilhouette width={width} height={height} /> :
                 <SternSilhouette width={width} height={height} />
               ) : (
                 type === "sailing" ? <SailSilhouette width={width} height={height} /> :
                 type === "seaplane" ? <SeaplaneSilhouette width={width} height={height} /> :
-                type === "pushing" ? <PushingSilhouette width={width} height={height} /> :
-                type === "towing" ? <TowingSilhouette width={width} height={height} /> :
+                type === "vessel-pushing" ? <PushingSilhouette width={width} height={height} /> :
+                type === "vessel-towing" ? <TowingSilhouette width={width} height={height} /> :
                 <CargoSilhouette width={width} height={height} />
               )}
             </g>
