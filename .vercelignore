@@ -1,0 +1,7 @@
+# Scraper - local only, never deployed
+scraper/
+
+# Development files
+.claude/
+*.md
+!README.md

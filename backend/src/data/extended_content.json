@@ -1,0 +1,126 @@
+{
+  "_instructions": "Add extended content for each rule below. Fields: scenarios (array), application (practical guidance), exam_tips, common_mistakes",
+
+  "rule_5": {
+    "application": "A proper lookout must be maintained at all times, not just by the officer of the watch but by dedicated lookouts in busy waters or restricted visibility. This includes monitoring VHF, AIS, and radar in addition to visual observation.",
+    "scenarios": [
+      {
+        "title": "Collision due to inadequate lookout",
+        "description": "Two vessels collided because the OOW was distracted by paperwork. Both vessels were at fault for not maintaining proper lookout."
+      }
+    ],
+    "exam_tips": "Remember: sight AND hearing AND all available means. Radar alone is not sufficient.",
+    "common_mistakes": ["Relying solely on radar", "OOW doing other tasks", "Not posting extra lookouts in fog"]
+  },
+
+  "rule_7": {
+    "application": "If the compass bearing of an approaching vessel does not change appreciably, you are on a collision course (CBDR - Constant Bearing, Decreasing Range). Use radar plotting or ARPA to confirm.",
+    "scenarios": [],
+    "exam_tips": "When in doubt, risk SHALL be deemed to exist. Don't make assumptions on scanty information.",
+    "common_mistakes": ["Assuming no risk because bearing changed slightly", "Not using radar plotting"]
+  },
+
+  "rule_13": {
+    "application": "The overtaking rule overrides all other rules in Section II. If you're coming from more than 22.5° abaft another vessel's beam (you'd only see their sternlight at night), you're the give-way vessel until completely past and clear.",
+    "scenarios": [
+      {
+        "title": "Overtaking becomes crossing?",
+        "bearing": "135° relative",
+        "description": "Vessel A overtakes Vessel B. As A draws alongside, the bearing changes. A argues it's now a crossing situation. WRONG - once overtaking, always overtaking until past and clear.",
+        "rules_applied": ["rule_13"],
+        "diagram_note": "Vessel approaching from astern sector"
+      }
+    ],
+    "exam_tips": "22.5° abaft beam = 112.5° from bow. If you can see their sternlight, you're overtaking.",
+    "common_mistakes": ["Thinking bearing change converts overtaking to crossing", "Not staying clear until PAST AND CLEAR"]
+  },
+
+  "rule_14": {
+    "application": "Head-on applies when you see both sidelights (red and green) or masthead lights in line. Both vessels alter to STARBOARD to pass port-to-port. When in doubt, assume head-on.",
+    "scenarios": [
+      {
+        "title": "Head-on at night",
+        "description": "You see both red and green sidelights ahead with masthead lights in line. This is head-on - alter to starboard.",
+        "rules_applied": ["rule_14"]
+      },
+      {
+        "title": "Nearly head-on",
+        "description": "You see both sidelights but they're not perfectly aligned. When in doubt, assume head-on and alter to starboard.",
+        "rules_applied": ["rule_14"]
+      }
+    ],
+    "exam_tips": "Both vessels alter to STARBOARD. If in doubt, assume head-on exists.",
+    "common_mistakes": ["One vessel not altering", "Altering to port instead of starboard"]
+  },
+
+  "rule_15": {
+    "application": "In a crossing situation between two power vessels, the vessel with the other on her STARBOARD side is the give-way vessel. She must avoid crossing ahead of the stand-on vessel.",
+    "scenarios": [
+      {
+        "title": "Crossing from starboard",
+        "bearing": "STBD 45°",
+        "description": "You see a vessel on your starboard bow showing her red sidelight. YOU are the give-way vessel - alter to starboard to pass astern.",
+        "rules_applied": ["rule_15", "rule_16"]
+      },
+      {
+        "title": "Crossing from port",
+        "bearing": "PORT 45°",
+        "description": "You see a vessel on your port bow showing her green sidelight. You are the stand-on vessel - maintain course and speed (initially).",
+        "rules_applied": ["rule_15", "rule_17"]
+      }
+    ],
+    "exam_tips": "If you see RED, you're the one who should have FLED (give way). Green = stand on.",
+    "common_mistakes": ["Crossing ahead of stand-on vessel", "Give-way vessel making small alterations"]
+  },
+
+  "rule_16": {
+    "application": "The give-way vessel must take EARLY and SUBSTANTIAL action. A succession of small alterations is wrong. Make your action obvious to the other vessel.",
+    "scenarios": [],
+    "exam_tips": "Early + Substantial = Large alteration made in good time. Should be obvious to other vessel visually and on radar.",
+    "common_mistakes": ["Making small successive alterations", "Waiting too long to act", "Not making action obvious"]
+  },
+
+  "rule_17": {
+    "application": "Stand-on vessel: (1) Initially keep course and speed. (2) MAY take action when give-way vessel isn't acting. (3) SHALL take action when collision can't be avoided by give-way alone (in extremis).",
+    "scenarios": [
+      {
+        "title": "Stand-on vessel must act",
+        "description": "Give-way vessel not taking action. Stand-on vessel should first sound 5 short blasts (doubt signal). If collision imminent, take action - but NOT to port for vessel on port side.",
+        "rules_applied": ["rule_17", "rule_34"]
+      }
+    ],
+    "exam_tips": "Three stages: (1) Keep course/speed, (2) MAY act, (3) SHALL act. In extremis = no longer restricted.",
+    "common_mistakes": ["Acting too early", "Altering to port for vessel on port side", "Doing nothing when collision is imminent"]
+  },
+
+  "rule_18": {
+    "application": "Hierarchy (top has priority): NUC > RAM > CBD > Fishing > Sailing > Power-driven > Seaplane. BUT Rules 9, 10, 13 can override this!",
+    "scenarios": [
+      {
+        "title": "Sailing vessel in TSS",
+        "description": "A sailing vessel must not impede a power vessel following a traffic lane (Rule 10(j) overrides Rule 18).",
+        "rules_applied": ["rule_18", "rule_10"]
+      },
+      {
+        "title": "Fishing vessel in narrow channel",
+        "description": "A fishing vessel must not impede any vessel in a narrow channel (Rule 9(c) overrides Rule 18).",
+        "rules_applied": ["rule_18", "rule_9"]
+      }
+    ],
+    "exam_tips": "Know the hierarchy AND the exceptions. Rules 9, 10, 13 override Rule 18.",
+    "common_mistakes": ["Forgetting Rules 9, 10, 13 exceptions", "Confusing RAM with NUC"]
+  },
+
+  "rule_19": {
+    "application": "In fog/restricted visibility (not in sight): Safe speed, engines ready. If you detect a vessel by radar forward of beam, do NOT alter to port (unless overtaking). If you hear fog signal forward, reduce to minimum steerage way.",
+    "scenarios": [
+      {
+        "title": "Radar contact in fog",
+        "description": "You detect a vessel on radar at 30° on your port bow. You should NOT alter to port. Alter to starboard or reduce speed.",
+        "rules_applied": ["rule_19"]
+      }
+    ],
+    "exam_tips": "Avoid: (1) Port turn for vessel forward of beam, (2) Turn toward vessel abeam/abaft beam.",
+    "common_mistakes": ["Altering to port for vessel forward of beam", "Not reducing speed when hearing fog signal ahead"]
+  }
+}

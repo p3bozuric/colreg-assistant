@@ -1,11 +1,13 @@
-import { MatchedRule } from "@/types";
+import { MatchedRule, Visual } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
 
 export type StreamChunk =
   | { type: "text"; data: string }
-  | { type: "metadata"; matchedRules?: MatchedRule[]; suggestedQuestions?: string[] };
+  | { type: "visual"; visual: Visual }
+  | { type: "metadata"; matchedRules?: MatchedRule[]; additionalRules?: MatchedRule[]; suggestedQuestions?: string[] }
+  | { type: "error"; error: string };
 
 export async function* streamChat(
   message: string,
@@ -53,20 +55,37 @@ export async function* streamChat(
     try {
       const parsed = JSON.parse(data);
 
+      // Handle visual events
+      if (eventType === "visual") {
+        return {
+          type: "visual",
+          visual: parsed as Visual,
+        };
+      }
+
+      // Handle metadata events
       if (eventType === "metadata") {
         return {
           type: "metadata",
           matchedRules: parsed.matched_rules,
+          additionalRules: parsed.additional_rules,
           suggestedQuestions: parsed.suggested_questions,
         };
       }
 
-      if (parsed.text !== undefined) {
+      // Handle text chunks (new format with type field)
+      if (parsed.type === "text" && parsed.text !== undefined) {
         return { type: "text", data: parsed.text };
       }
 
-      if (parsed.error) {
-        throw new Error(parsed.error);
+      // Handle errors
+      if (parsed.type === "error" || parsed.error) {
+        return { type: "error", error: parsed.error || "Unknown error" };
+      }
+
+      // Legacy format support (text field without type)
+      if (parsed.text !== undefined) {
+        return { type: "text", data: parsed.text };
       }
     } catch (e) {
       // If JSON parsing fails, treat as raw text for backwards compatibility

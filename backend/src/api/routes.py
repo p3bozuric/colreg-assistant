@@ -1,4 +1,5 @@
 import json
+import re
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -6,10 +7,49 @@ from pydantic import BaseModel
 from datetime import datetime
 from loguru import logger
 from src.graph.workflow import create_prep_graph
-from src.graph.nodes import SYSTEM_PROMPT, generate_suggestions_node
+from src.graph.nodes import SYSTEM_PROMPT, VISUAL_INSTRUCTIONS, generate_suggestions_node
 from src.services.llm import generate_streaming_response
+from src.services.stream_parser import parse_streaming_response
 from src.services.chat_history import save_message
+from src.data.visual_catalog import generate_catalog_reference
+from src.data.rules import COLREG_RULES
+from src.models.extraction import RuleMetadata
 from src.config import get_settings
+
+
+def extract_mentioned_rules(text: str, existing_rule_ids: set[str]) -> list[RuleMetadata]:
+    """Extract rule mentions from LLM response that aren't already in matched rules.
+
+    Parses patterns like "Rule 30", "Rule 35(a)", "rule 14" from text and returns
+    RuleMetadata for any rules not already included.
+    """
+    # Match "Rule X" or "Rule X(y)" patterns (case insensitive)
+    pattern = r'\brule\s+(\d+)(?:\s*\([a-z]\))?'
+    matches = re.findall(pattern, text, re.IGNORECASE)
+
+    additional_rules = []
+    seen = set()
+
+    for rule_num in matches:
+        rule_id = f"rule_{rule_num}"
+        # Skip if already matched or already added
+        if rule_id in existing_rule_ids or rule_id in seen:
+            continue
+
+        rule = COLREG_RULES.get(rule_id)
+        if rule:
+            seen.add(rule_id)
+            additional_rules.append(RuleMetadata(
+                id=rule_id,
+                title=rule["title"],
+                part=rule["part"],
+                section=rule.get("section"),
+                summary=rule["summary"],
+                content=rule["content"],
+                keywords=rule["keywords"],
+            ))
+
+    return additional_rules
 
 
 router = APIRouter()
@@ -62,27 +102,48 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
 
             return StreamingResponse(fallback_generator(), media_type="text/event-stream")
 
-        # Build messages for LLM
-        system_content = SYSTEM_PROMPT.format(rule_context=prep_result.get("rule_context", ""))
+        # Build messages for LLM with visual catalog
+        visual_catalog = generate_catalog_reference(matched_rules)
+        visual_instructions = VISUAL_INSTRUCTIONS.format(visual_catalog=visual_catalog)
+        system_content = SYSTEM_PROMPT.format(
+            rule_context=prep_result.get("rule_context", ""),
+            visual_instructions=visual_instructions
+        )
         messages = [{"role": "system", "content": system_content}]
         messages.extend(prep_result.get("chat_history", []))
         messages.append({"role": "user", "content": request.message})
 
-        # Stream response with true LLM streaming
+        # Stream response with visual marker parsing
         async def event_generator():
-            full_response = ""
+            full_response = ""  # Accumulate full response (text only, for history)
             try:
                 # Send matched rules immediately (before streaming starts)
                 if matched_rules:
                     rules_metadata = {"matched_rules": [rule.model_dump() for rule in matched_rules]}
                     yield f"event: metadata\ndata: {json.dumps(rules_metadata)}\n\n"
 
-                # Stream LLM response directly
-                async for chunk in generate_streaming_response(messages):
-                    full_response += chunk
-                    yield f"data: {json.dumps({'text': chunk})}\n\n"
+                # Stream LLM response with visual marker parsing
+                raw_stream = generate_streaming_response(messages)
+                async for chunk in parse_streaming_response(raw_stream):
+                    if chunk.type == "text":
+                        text = chunk.data.get("text", "")
+                        full_response += text
+                        yield f"data: {json.dumps({'type': 'text', 'text': text})}\n\n"
+                    elif chunk.type == "visual":
+                        # Emit visual event (don't add to full_response - keep history text-only)
+                        yield f"event: visual\ndata: {json.dumps(chunk.data)}\n\n"
 
-                # After streaming, generate suggestions
+                # After streaming, check for additional rules mentioned in response
+                existing_rule_ids = {r.id for r in matched_rules}
+                additional_rules = extract_mentioned_rules(full_response, existing_rule_ids)
+
+                # Send additional rules if found
+                if additional_rules:
+                    additional_metadata = {"additional_rules": [rule.model_dump() for rule in additional_rules]}
+                    yield f"event: metadata\ndata: {json.dumps(additional_metadata)}\n\n"
+                    logger.info(f"Found {len(additional_rules)} additional rules in response: {[r.id for r in additional_rules]}")
+
+                # Generate suggestions
                 suggestion_result = generate_suggestions_node({
                     **prep_result,
                     "query": request.message,
@@ -90,7 +151,7 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
                 })
                 suggested_questions = suggestion_result.get("suggested_questions", [])
 
-                # Save to history
+                # Save to history (text only, markers stripped)
                 save_message(session_id, "user", request.message)
                 save_message(session_id, "assistant", full_response)
 
@@ -102,7 +163,7 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
 
             except Exception as e:
                 logger.error(f"Error in streaming: {e}")
-                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+                yield f"data: {json.dumps({'type': 'error', 'error': str(e)})}\n\n"
 
         return StreamingResponse(event_generator(), media_type="text/event-stream")
 
