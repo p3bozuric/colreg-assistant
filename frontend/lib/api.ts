@@ -11,7 +11,8 @@ export type StreamChunk =
 
 export async function* streamChat(
   message: string,
-  sessionId?: string
+  sessionId?: string,
+  isMobile?: boolean
 ): AsyncGenerator<StreamChunk, void, unknown> {
   const response = await fetch(`${API_URL}/chat`, {
     method: "POST",
@@ -22,6 +23,7 @@ export async function* streamChat(
     body: JSON.stringify({
       message,
       session_id: sessionId,
+      is_mobile: isMobile,
     }),
   });
 

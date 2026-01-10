@@ -68,6 +68,7 @@ async def verify_api_key(credentials: HTTPAuthorizationCredentials = Depends(sec
 class ChatRequest(BaseModel):
     message: str
     session_id: str | None = None
+    is_mobile: bool = False
 
 
 @router.post("/chat")
@@ -143,13 +144,15 @@ async def chat(request: ChatRequest, _: HTTPAuthorizationCredentials = Depends(v
                     yield f"event: metadata\ndata: {json.dumps(additional_metadata)}\n\n"
                     logger.info(f"Found {len(additional_rules)} additional rules in response: {[r.id for r in additional_rules]}")
 
-                # Generate suggestions
-                suggestion_result = generate_suggestions_node({
-                    **prep_result,
-                    "query": request.message,
-                    "response": full_response,
-                })
-                suggested_questions = suggestion_result.get("suggested_questions", [])
+                # Generate suggestions (skip for mobile)
+                suggested_questions = []
+                if not request.is_mobile:
+                    suggestion_result = generate_suggestions_node({
+                        **prep_result,
+                        "query": request.message,
+                        "response": full_response,
+                    })
+                    suggested_questions = suggestion_result.get("suggested_questions", [])
 
                 # Save to history (text only, markers stripped)
                 save_message(session_id, "user", request.message)

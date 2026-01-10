@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { Message } from "@/types";
 import { streamChat } from "@/lib/api";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
 import SuggestedQuestions from "./SuggestedQuestions";
@@ -34,6 +35,7 @@ export default function Chat() {
       ? `session_${Date.now()}`
       : "session_default"
   );
+  const isMobile = useIsMobile();
 
   const handleSend = useCallback(
     async (content: string, audioData?: { url: string; blob: Blob }) => {
@@ -124,7 +126,7 @@ export default function Chat() {
       setMessages((prev) => [...prev, assistantMessage]);
 
       try {
-        for await (const chunk of streamChat(finalContent, sessionId)) {
+        for await (const chunk of streamChat(finalContent, sessionId, isMobile)) {
           setMessages((prev) => {
             const lastIndex = prev.length - 1;
             const lastMessage = prev[lastIndex];
@@ -207,7 +209,7 @@ export default function Chat() {
         setIsStreaming(false);
       }
     },
-    [sessionId]
+    [sessionId, isMobile]
   );
 
   // Get suggested questions from the last assistant message

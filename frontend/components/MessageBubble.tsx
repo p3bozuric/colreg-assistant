@@ -107,7 +107,7 @@ function InlineContentRenderer({ contentItems }: InlineContentRendererProps) {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
-              className="my-4 flex justify-center not-prose"
+              className="my-4 flex justify-center not-prose overflow-x-auto"
             >
               <VisualRendererDefault visual={item.content as Visual} />
             </motion.div>
@@ -270,7 +270,7 @@ export default function MessageBubble({ message, isLoading }: MessageBubbleProps
           </div>
         )}
         {hasLegacyVisuals && (
-          <div className="mt-4 flex flex-wrap gap-4 justify-center">
+          <div className="mt-4 flex flex-wrap gap-4 justify-center overflow-x-auto">
             {message.visuals!.map((visual, idx) => (
               <VisualRenderer key={idx} visual={visual} />
             ))}

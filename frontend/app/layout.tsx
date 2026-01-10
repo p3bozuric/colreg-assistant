@@ -38,7 +38,7 @@ export default function RootLayout({
       >
         <ParticleBackground />
         <Navigation />
-        <main className="flex-1 flex flex-col min-h-0 overflow-hidden">{children}</main>
+        <main className="flex-1 flex flex-col min-h-0 overflow-auto scrollbar-hide">{children}</main>
       </body>
     </html>
   );

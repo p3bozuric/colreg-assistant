@@ -1329,13 +1329,13 @@ export default function VesselLights({
       const lightColor = lightConfig.color;
       const matchingArcs = allArcs.filter(arc => {
         const arcType = arc.type.toLowerCase();
-        // Match by checking if arc type contains the light id or vice versa
-        const idMatch = arcType.includes(lightId) || lightId.includes(arcType.replace(/-.*$/, ''));
+        // First check for exact ID match
+        if (arcType === lightId) return true;
+        // Check if arc type contains the light id or vice versa
+        const idMatch = arcType.includes(lightId) || lightId.includes(arcType);
         if (!idMatch) return false;
-        // For sidelights, also match by color to be more precise
-        if (arcType.includes('side') && lightId.includes('side')) {
-          return arc.color === lightColor;
-        }
+        // For lights with similar IDs, also match by color to be more precise
+        if (arc.color !== lightColor) return false;
         return true;
       });
       if (matchingArcs.length > 0) {

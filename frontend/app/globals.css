@@ -36,22 +36,24 @@ body {
   min-height: 100vh;
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
+/* Hide all scrollbars globally */
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--background-secondary);
+*::-webkit-scrollbar {
+  display: none;
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border-radius: 4px;
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-hover);
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* Ensure prose bold text is visible */
