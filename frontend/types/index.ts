@@ -27,6 +27,12 @@ export interface ContentItem {
   content: string | Visual;
 }
 
+export interface VoiceData {
+  url: string;
+  transcript: string | null; // null while transcribing
+  isTranscribing?: boolean;
+}
+
 export interface Message {
   id: string;
   role: "user" | "assistant";
@@ -36,6 +42,7 @@ export interface Message {
   matchedRules?: MatchedRule[];
   suggestedQuestions?: string[];
   visuals?: Visual[];  // Legacy: standalone visuals at end
+  voice?: VoiceData;  // Voice message with audio URL and transcript
 }
 
 export interface ChatRequest {

@@ -252,6 +252,19 @@ export const MORSE_CODES: Record<string, string> = {
   X: "-..-",
   Y: "-.--",
   Z: "--..",
+  // Numbers
+  "0": "-----",
+  "1": ".----",
+  "2": "..---",
+  "3": "...--",
+  "4": "....-",
+  "5": ".....",
+  "6": "-....",
+  "7": "--...",
+  "8": "---..",
+  "9": "----.",
+  // Special signals
+  SOS: "...---...",
 };
 
 // Maritime signal meanings
@@ -282,4 +295,5 @@ export const MARITIME_SIGNALS: Record<string, string> = {
   X: "Stop carrying out your intentions and watch for my signals",
   Y: "I am dragging anchor",
   Z: "I require a tug",
+  SOS: "International distress signal - immediate assistance required",
 };

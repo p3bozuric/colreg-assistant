@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Message } from "@/types";
 import MessageBubble from "./MessageBubble";
 
@@ -11,7 +11,7 @@ const STARTER_QUESTIONS = [
   "How do I navigate in restricted visibility?",
   "What lights are required for towing?",
   "Explain the rules for sailing vessels",
-  "What ligts must a sailing vessel show at night?",
+  "What lights must a sailing vessel show at night?",
   "Describe the actions to avoid collision (Rule 8)",
   "What are the sound signals for maneuvering?",
   "What is the hierarchy of vessels under Rule 18?",
@@ -47,16 +47,50 @@ export default function MessageList({
   messages,
   isStreaming,
   onSend,
-}: MessageListProps) {
+  onAtBottomChange,
+}: MessageListProps & { onAtBottomChange?: (atBottom: boolean) => void }) {
   const bottomRef = useRef<HTMLDivElement>(null);
-  const starterQuestions = useMemo(() => getRandomQuestions(3), []);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [starterQuestions, setStarterQuestions] = useState<string[]>([]);
+
+  useEffect(() => {
+    setStarterQuestions(getRandomQuestions(3));
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !onAtBottomChange) return;
+
+    let timeoutId: NodeJS.Timeout;
+
+    const handleScroll = () => {
+      // Debounce to avoid rapid state changes during momentum scrolling
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const threshold = 250; // Larger threshold for mobile reliability
+        const atBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+        onAtBottomChange(atBottom);
+      }, 100);
+    };
+
+    // Check initial state
+    const threshold = 250;
+    const atBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+    onAtBottomChange(atBottom);
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      clearTimeout(timeoutId);
+      container.removeEventListener("scroll", handleScroll);
+    };
+  }, [onAtBottomChange]);
+
   return (
-    <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4">
+    <div ref={containerRef} className={`flex-1 px-4 md:px-6 py-4 space-y-4 min-h-0 ${messages.length === 0 ? 'overflow-hidden' : 'overflow-y-auto'}`}>
       {messages.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-center pt-[15vh] md:pt-0">
           <div className="text-5xl md:text-6xl mb-4">⚓</div>

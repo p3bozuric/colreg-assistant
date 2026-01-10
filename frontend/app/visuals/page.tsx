@@ -15,7 +15,7 @@ import {
 export default function VisualsDemo() {
   return (
     <div className="min-h-screen px-8 pb-8 pt-32">
-      <h1 className="text-3xl font-bold mb-8 text-center">COLREG Lights & Shapes</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">COLREG Lights & Shapes</h1>
       <p className="text-center text-muted mb-12 max-w-2xl mx-auto">
         Hover over lights and shapes to see details.
       </p>

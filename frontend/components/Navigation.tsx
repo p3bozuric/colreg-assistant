@@ -9,7 +9,7 @@ const PARENT_URL = process.env.NEXT_PUBLIC_PARENT_URL || "https://bozuric.com";
 
 export default function Navigation() {
   const pathname = usePathname(); 
-  const buttonClass = "px-4 py-2 rounded-lg border font-medium transition-all duration-300";
+  const buttonClass = "px-3 py-1.5 md:px-4 md:py-2 rounded-lg border font-medium text-sm md:text-base transition-all duration-300";
   const activeStyle = "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20";
   const inactiveStyle = "text-muted-foreground border-transparent hover:text-primary hover:bg-primary/5";
 
@@ -47,24 +47,24 @@ export default function Navigation() {
             </Link>
 
             {/* New Visuals Button */}
-            <Link 
-              href="/visuals" 
-              className={`${buttonClass} ${pathname === '/visuals' ? activeStyle : inactiveStyle}`}
+            <Link
+              href="/visuals"
+              className={`${buttonClass} ${pathname === '/visuals' ? activeStyle : inactiveStyle} text-center`}
             >
-              Lights & Shapes
+              Lights &<br className="md:hidden" /> Shapes
             </Link>
 
-            <Link 
-              href="/sounds" 
-              className={`${buttonClass} ${pathname === '/sounds' ? activeStyle : inactiveStyle}`}
+            <Link
+              href="/sounds"
+              className={`${buttonClass} ${pathname === '/sounds' ? activeStyle : inactiveStyle} text-center`}
             >
-              Sound Signals
+              Sound<br className="md:hidden" /> Signals
             </Link>
 
           </div>
         </div>
         <div className="text-muted text-sm hidden md:block">
-          COLREG AI Assistant
+          COLREG AI
         </div>
       </nav>
     </motion.header>

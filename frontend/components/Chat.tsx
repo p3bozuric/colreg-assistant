@@ -1,15 +1,34 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Message, ContentItem } from "@/types";
+import { Message } from "@/types";
 import { streamChat } from "@/lib/api";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
 import SuggestedQuestions from "./SuggestedQuestions";
 
+async function transcribeAudio(blob: Blob): Promise<string> {
+  const formData = new FormData();
+  formData.append("audio", blob, "recording.webm");
+
+  const response = await fetch("/api/transcribe", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.error || "Transcription failed");
+  }
+
+  const data = await response.json();
+  return data.text;
+}
+
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(true);
   const [sessionId] = useState(() =>
     typeof window !== "undefined"
       ? `session_${Date.now()}`
@@ -17,15 +36,81 @@ export default function Chat() {
   );
 
   const handleSend = useCallback(
-    async (content: string) => {
-      const userMessage: Message = {
-        id: `user_${Date.now()}`,
-        role: "user",
-        content,
-        timestamp: new Date(),
-      };
+    async (content: string, audioData?: { url: string; blob: Blob }) => {
+      const messageId = `user_${Date.now()}`;
+      let finalContent = content;
 
-      setMessages((prev) => [...prev, userMessage]);
+      // If voice message, create message in transcribing state
+      if (audioData) {
+        // Create a new persistent URL from the blob (the original gets revoked)
+        const persistentAudioUrl = URL.createObjectURL(audioData.blob);
+
+        const userMessage: Message = {
+          id: messageId,
+          role: "user",
+          content: "",
+          timestamp: new Date(),
+          voice: {
+            url: persistentAudioUrl,
+            transcript: null,
+            isTranscribing: true,
+          },
+        };
+        setMessages((prev) => [...prev, userMessage]);
+
+        // Transcribe the audio
+        try {
+          const transcript = await transcribeAudio(audioData.blob);
+          finalContent = transcript;
+
+          // Update user message with transcript
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === messageId
+                ? {
+                    ...msg,
+                    content: transcript,
+                    voice: {
+                      url: persistentAudioUrl,
+                      transcript,
+                      isTranscribing: false,
+                    },
+                  }
+                : msg
+            )
+          );
+        } catch (error) {
+          console.error("Transcription error:", error);
+          // Update message to show error
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === messageId
+                ? {
+                    ...msg,
+                    content: "Failed to transcribe audio",
+                    voice: {
+                      url: persistentAudioUrl,
+                      transcript: "Failed to transcribe audio",
+                      isTranscribing: false,
+                    },
+                  }
+                : msg
+            )
+          );
+          return;
+        }
+      } else {
+        // Regular text message
+        const userMessage: Message = {
+          id: messageId,
+          role: "user",
+          content,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, userMessage]);
+      }
+
+      // Now send to backend
       setIsStreaming(true);
 
       const assistantMessage: Message = {
@@ -39,7 +124,7 @@ export default function Chat() {
       setMessages((prev) => [...prev, assistantMessage]);
 
       try {
-        for await (const chunk of streamChat(content, sessionId)) {
+        for await (const chunk of streamChat(finalContent, sessionId)) {
           setMessages((prev) => {
             const lastIndex = prev.length - 1;
             const lastMessage = prev[lastIndex];
@@ -129,15 +214,20 @@ export default function Chat() {
   const lastAssistantMessage = [...messages].reverse().find(m => m.role === "assistant");
   const suggestedQuestions = !isStreaming ? lastAssistantMessage?.suggestedQuestions : undefined;
 
+  const showSuggestions = isAtBottom && suggestedQuestions && suggestedQuestions.length > 0;
+
   return (
-    <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
+    <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full overflow-hidden min-h-0">
       <MessageList
         messages={messages}
         isStreaming={isStreaming && messages[messages.length - 1]?.content === ""}
         onSend={handleSend}
+        onAtBottomChange={setIsAtBottom}
       />
-      <div className="sticky bottom-0 bg-background-secondary/95 backdrop-blur-sm">
-        <SuggestedQuestions questions={suggestedQuestions} onSelect={handleSend} />
+      <div className="flex-shrink-0 pb-4 px-4 bg-gradient-to-t from-background via-background/95 to-transparent pt-4">
+        {showSuggestions && (
+          <SuggestedQuestions questions={suggestedQuestions} onSelect={handleSend} />
+        )}
         <ChatInput onSend={handleSend} disabled={isStreaming} />
       </div>
     </div>
