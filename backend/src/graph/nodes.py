@@ -5,6 +5,7 @@ from src.graph.state import GraphState
 from src.services.chat_history import load_session_history, save_message, format_history_for_llm
 from src.services.llm import generate_streaming_response, generate_sync_response, generate_structured_response
 from src.services.rule_matcher import keyword_fallback_extraction
+from src.services.rag_retrieval import retrieve_relevant_rules
 from src.models.extraction import RuleExtraction, RuleMetadata, SuggestedQuestions
 from src.data.rules import COLREG_RULES, GENERAL_INFO
 
@@ -72,7 +73,7 @@ Analyze the user's maritime navigation query and identify which specific rules a
 - rule_24: When user asks about towing lights, pushing lights, tow length over 200m, composite units, or vessels being towed
 - rule_25: When user asks about sailing vessel lights, vessels under oars, combined lantern, or sail with engine running (cone shape)
 - rule_26: When user asks about fishing vessel lights, trawling lights, fishing gear lights, green over white, or red over white
-- rule_27: When user asks about NUC (not under command) lights, RAM (restricted ability to manoeuvre) lights, diving operations, dredging, or mineclearance lights
+- rule_27: When user asks about NUC (not under command) lights, RAM (restricted ability to manoeuvre) lights, diving operations, dredging, or mineclearance (minesweeper) lights or additional info
 - rule_28: When user asks about constrained by draught lights, three red vertical lights, or cylinder shape
 - rule_29: When user asks about pilot vessel lights, white over red, or pilot boat identification
 - rule_30: When user asks about anchor lights, aground lights, vessel at anchor, or aground signals (three balls)
@@ -262,9 +263,56 @@ def extract_rules_node(state: GraphState) -> dict:
     }
 
 
+def rag_retrieval_node(state: GraphState) -> dict:
+    """Retrieve relevant rules using semantic search (RAG).
+
+    Runs in parallel with extract_rules_node to find rules
+    that might be missed by LLM-based extraction.
+    """
+    logger.info("Running RAG retrieval for relevant rules...")
+
+    query = state["query"]
+
+    # Include recent conversation context for better retrieval
+    chat_history = state.get("chat_history", [])
+    if chat_history:
+        # Append recent context to improve retrieval
+        recent_context = " ".join([
+            msg["content"] for msg in chat_history[-4:]
+            if msg["role"] == "user"
+        ])
+        query = f"{recent_context} {query}"
+
+    # Retrieve rules via semantic search
+    rag_rules = retrieve_relevant_rules(
+        query=query,
+        top_k=5,
+        similarity_threshold=0.4,
+        language="en"
+    )
+
+    logger.info(f"RAG retrieved {len(rag_rules)} rules: {rag_rules}")
+    return {"rag_rules": rag_rules}
+
+
 def compile_context_node(state: GraphState) -> dict:
-    """Compile rule context from extracted rules."""
-    logger.info(f"Compiling context from {len(state.get('extracted_rules', []))} rules...")
+    """Compile rule context from merged LLM + RAG extracted rules."""
+    llm_rules = state.get("extracted_rules", [])
+    rag_rules = state.get("rag_rules", [])
+
+    # Merge and deduplicate: union of LLM + RAG rules, preserving order
+    # LLM rules come first (higher confidence), then RAG-only rules
+    seen = set(llm_rules)
+    merged_rules = list(llm_rules)
+    for rule_id in rag_rules:
+        if rule_id not in seen:
+            seen.add(rule_id)
+            merged_rules.append(rule_id)
+
+    logger.info(f"Compiling context - LLM: {len(llm_rules)}, RAG: {len(rag_rules)}, Merged: {len(merged_rules)}")
+    logger.debug(f"LLM rules: {llm_rules}")
+    logger.debug(f"RAG rules: {rag_rules}")
+    logger.debug(f"Merged rules: {merged_rules}")
 
     context_parts = []
     matched_rules: list[RuleMetadata] = []
@@ -273,8 +321,8 @@ def compile_context_node(state: GraphState) -> dict:
     if state.get("include_general", False):
         context_parts.append("## COLREG Overview\n" + GENERAL_INFO["overview"])
 
-    # Add each extracted rule
-    for rule_id in state.get("extracted_rules", []):
+    # Add each merged rule
+    for rule_id in merged_rules:
         rule = COLREG_RULES.get(rule_id)
         if rule:
             title = rule["title"]

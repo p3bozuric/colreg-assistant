@@ -90,7 +90,7 @@ export default function MessageList({
   }, [onAtBottomChange]);
 
   return (
-    <div ref={containerRef} className={`flex-1 px-4 md:px-6 py-4 space-y-4 min-h-0 scrollbar-hide ${messages.length === 0 ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+    <div ref={containerRef} className={`flex-1 px-4 md:px-6 pt-8 md:pt-4 pb-4 space-y-4 min-h-0 scrollbar-hide ${messages.length === 0 ? 'overflow-hidden' : 'overflow-y-auto'}`}>
       {messages.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-center pt-[15vh] md:pt-0">
           <div className="text-5xl md:text-6xl mb-4">⚓</div>

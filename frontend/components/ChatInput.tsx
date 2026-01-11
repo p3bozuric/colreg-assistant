@@ -81,10 +81,10 @@ function AudioPreview({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
-      className="flex items-center gap-3"
+      className="flex items-center gap-2 md:gap-3 w-full"
     >
       {/* Custom Styled Audio Player */}
-      <div className="flex-1 flex items-center gap-3 px-3 py-2 bg-card-bg rounded-xl border border-border">
+      <div className="flex-1 min-w-0 flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 bg-card-bg rounded-xl border border-border">
         <audio
           ref={(el) => {
             if (el) {
@@ -127,7 +127,7 @@ function AudioPreview({
         </button>
 
         {/* Progress Bar & Time */}
-        <div className="flex-1 flex items-center gap-3">
+        <div className="flex-1 min-w-0 flex items-center gap-2 md:gap-3">
           <input
             type="range"
             min="0"
@@ -140,9 +140,9 @@ function AudioPreview({
                 setCurrentTime(Number(e.target.value));
               }
             }}
-            className="flex-1 h-1.5 bg-border rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-sm"
+            className="flex-1 min-w-0 h-1.5 bg-border rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-sm"
           />
-          <span className="text-xs text-muted min-w-[70px] text-right">
+          <span className="text-xs text-muted whitespace-nowrap">
             {formatTime(currentTime)} / {formatTime(duration || 0)}
           </span>
         </div>
@@ -152,7 +152,7 @@ function AudioPreview({
       <button
         type="button"
         onClick={onCancel}
-        className="p-3 rounded-xl bg-card-bg border border-border text-muted hover:text-red-400 hover:border-red-400/50 transition-colors"
+        className="p-2 md:p-3 rounded-xl bg-card-bg border border-border text-muted hover:text-red-400 hover:border-red-400/50 transition-colors flex-shrink-0"
         aria-label="Cancel"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -162,7 +162,7 @@ function AudioPreview({
       <button
         type="button"
         onClick={onSend}
-        className="p-3 rounded-xl bg-gradient-to-r from-primary to-secondary text-white transition-all duration-300 hover:shadow-lg hover:shadow-primary/30"
+        className="p-2 md:p-3 rounded-xl bg-gradient-to-r from-primary to-secondary text-white transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 flex-shrink-0"
         aria-label="Send voice message"
       >
         <SendIcon className="w-5 h-5" />
@@ -226,16 +226,15 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   }, [recordingState, startRecording, stopRecording]);
 
   // Mobile: press and hold to record
-  const handleTouchStart = useCallback(async (e: React.TouchEvent) => {
-    e.preventDefault();
+  // Note: touch-none CSS class on button handles preventing default touch behaviors
+  const handleTouchStart = useCallback(async () => {
     isPressingRef.current = true;
     if (recordingState === "idle") {
       await startRecording();
     }
   }, [recordingState, startRecording]);
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
+  const handleTouchEnd = useCallback(() => {
     if (isPressingRef.current && recordingState === "recording") {
       stopRecording();
     }
